@@ -5,7 +5,7 @@
         <div>
           <h5 class="mb-0">Información</h5>
         </div>
-        <div>
+        <div v-if="userIsAdmin">
           <argon-button color="primary" @click="onEditMode">{{
             `${editMode ? "Cancelar" : "Editar"}`
           }}</argon-button>
@@ -154,7 +154,7 @@
 
 <script>
 import { onMounted, ref } from "vue";
-import { useStudents, useStudent } from "@/composables";
+import { useStudents, useStudent, useAuth } from "@/composables";
 import { ArgonButton } from "@/components";
 import errorMessages from "@/constants/formErrorMessages";
 import { ElMessage } from "element-plus";
@@ -179,6 +179,7 @@ export default {
     } = useStudents();
 
     const { student, requestGetStudentById } = useStudent();
+    const { userIsAdmin } = useAuth();
 
     const requiredMesage = errorMessages.required;
     const inValidEmailMessage = errorMessages.inValidEmail;
@@ -283,6 +284,7 @@ export default {
       editMode,
       onEditMode,
       settingData,
+      userIsAdmin,
     };
   },
 };

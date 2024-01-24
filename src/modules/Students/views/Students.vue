@@ -148,6 +148,7 @@
         </div>
         <div class="mt-4 d-flex justify-content-end">
           <el-pagination
+            v-model="currentPage"
             background
             layout="prev, pager, next"
             :total="students.total"
@@ -201,6 +202,7 @@ export default {
     const selectedStudentType = ref("");
     const search = ref("");
     const studentCurrentYear = ref("");
+    const currentPage = ref(1);
 
     //methods
     const onChangePage = (page) => {
@@ -273,6 +275,7 @@ export default {
       studentCurrentYear,
       isDownloadingStudentsPersonalData,
       onDownloadReport,
+      currentPage,
     };
   },
 };
