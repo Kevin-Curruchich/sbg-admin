@@ -77,10 +77,11 @@
         </div>
         <div class="mt-4 d-flex justify-content-end">
           <el-pagination
+            v-model:current-page="pagination.page"
             background
             layout="prev, pager, next"
             :total="paymentsReport.total"
-            @current-change="onChangePage"
+            :page-size="pagination.take"
           />
         </div>
         <!-- </div> -->
@@ -90,7 +91,7 @@
 </template>
 
 <script>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useStore } from "vuex";
 import ArgonButton from "@/components/ArgonButton.vue";
 import { useReports, useFormatDate, usePayments } from "@/composables";
@@ -131,10 +132,6 @@ export default {
     }));
 
     //methods
-    const onChangePage = (page) => {
-      pagination.value.page = page;
-      onFilter();
-    };
 
     const onExportReport = async () => {
       await requestDownloadPaymentsReport({
@@ -159,6 +156,13 @@ export default {
       store.commit("reports/setPaymentsReport", { data: [], total: 0 });
     });
 
+    watch(
+      () => params.value.page,
+      async () => {
+        await requestGetPaymentsReport(params.value);
+      }
+    );
+
     return {
       studentName,
       startDate,
@@ -170,7 +174,6 @@ export default {
       onExportReport,
       onFilter,
       getPaymentsId,
-      onChangePage,
     };
   },
 };

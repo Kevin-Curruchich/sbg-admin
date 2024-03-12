@@ -64,7 +64,6 @@ export const requestDownloadStudentsPersonalData = async ({ commit }) => {
 export const requestGetPaymentsReport = async ({ commit }, { params }) => {
   return new Promise((resolve, reject) => {
     commit("setIsLoadingPaymentsReport", true);
-    commit("setPaymentsReport", { data: [], total: 0 });
     sbgApi
       .get(`/reports/payments`, { params })
       .then((response) => {
