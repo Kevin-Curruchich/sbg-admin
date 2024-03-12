@@ -60,3 +60,39 @@ export const requestDownloadStudentsPersonalData = async ({ commit }) => {
       });
   });
 };
+
+export const requestGetPaymentsReport = async ({ commit }, { params }) => {
+  return new Promise((resolve, reject) => {
+    commit("setIsLoadingPaymentsReport", true);
+    commit("setPaymentsReport", { data: [], total: 0 });
+    sbgApi
+      .get(`/reports/payments`, { params })
+      .then((response) => {
+        commit("setIsLoadingPaymentsReport", false);
+        commit("setPaymentsReport", response.data);
+        resolve(response);
+      })
+      .catch((error) => {
+        console.log(error);
+        commit("setIsLoadingPaymentsReport", false);
+        reject(error);
+      });
+  });
+};
+
+export const requestDownloadPaymentsReport = async ({ commit }, { params }) => {
+  return new Promise((resolve, reject) => {
+    commit("setIsDownloadingPaymentsReport", true);
+    sbgApi
+      .get(`/reports/payments/export`, { params, responseType: "blob" })
+      .then((response) => {
+        commit("setIsDownloadingPaymentsReport", false);
+        resolve(response);
+      })
+      .catch((error) => {
+        console.log(error);
+        commit("setIsDownloadingPaymentsReport", false);
+        reject(error);
+      });
+  });
+};

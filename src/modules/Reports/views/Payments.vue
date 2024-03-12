@@ -2,96 +2,86 @@
   <div class="py-3 container-fluid">
     <div class="row">
       <div class="col-12">
-        <!-- <div class="card"> -->
         <!-- Card header -->
         <div class="pb-0 card-header">
           <div class="d-lg-flex">
-            <div>
-              <h5 class="mb-0">Reporte Bonos</h5>
-            </div>
-            <div class="my-auto mt-4 ms-auto mt-lg-0">
-              <div class="my-auto ms-auto">
-                <!-- <argon-button color="primary" size="lg"> Generar </argon-button> -->
-              </div>
-            </div>
+            <h5 class="mb-0">Reporte Aportes</h5>
           </div>
           <div class="row mt-3">
             <div class="col-md-3">
-              <label class="form-label"> Tipo de bonificacion </label>
-              <div>
-                <el-select v-model="selectedBranch">
-                  <el-option label="Todos" value=""></el-option>
-                  <el-option
-                    v-for="item in [{ branchId: '12', branchName: 'Name' }]"
-                    :key="item.branchId"
-                    :value="item.branchId"
-                    :label="item.branchName"
-                  >
-                    {{ item.branchName }}
-                  </el-option>
-                </el-select>
-              </div>
+              <label class="form-label"> Nombre </label>
+
+              <el-input v-model="studentName" placeholder="Nombre" clearable />
             </div>
             <div class="col-md-3">
-              <label class="form-label"> Sede </label>
+              <label class="form-label"> Mes Inicial </label>
               <div>
-                <el-select v-model="selectedBranch">
-                  <el-option label="Todos" value=""></el-option>
-                  <el-option
-                    v-for="item in [{ branchId: '12', branchName: 'Name' }]"
-                    :key="item.branchId"
-                    :value="item.branchId"
-                    :label="item.branchName"
-                  >
-                    {{ item.branchName }}
-                  </el-option>
-                </el-select>
-              </div>
-            </div>
-            <div class="col-md-3">
-              <label class="form-label"> Año de bonificacion </label>
-              <div class="">
                 <el-date-picker
-                  v-model="value2"
-                  type="year"
-                  placeholder="Selecccione año"
+                  v-model="startDate"
+                  type="month"
+                  format="MM/YYYY"
+                  placeholder="Selecccione Mes Inicial"
                 />
               </div>
             </div>
-            <div class="col-md-2">
-              <div class="h-100 d-flex align-items-end">
-                <argon-button color="primary"
-                  >Filtrar
+            <div class="col-md-3">
+              <label class="form-label"> Mes Final </label>
+              <el-date-picker
+                v-model="endDate"
+                type="month"
+                format="MM/YYYY"
+                placeholder="Selecccione Mes Final"
+              />
+            </div>
+            <div class="col-md-3">
+              <div
+                class="h-100 d-flex align-items-end justify-content-between px-2"
+              >
+                <argon-button
+                  color="primary"
+                  :disabled="startDate === '' || endDate === ''"
+                  @click="onFilter"
+                >
+                  Filtrar
                   <i class="fas fa-filter"></i>
+                </argon-button>
+
+                <argon-button
+                  color="secondary"
+                  :disabled="paymentsReport.total === 0"
+                  :loading="isDownloadingPaymentsReport"
+                  @click="onExportReport"
+                >
+                  Descargar
+                  <i class="fas fa-file-export"></i>
                 </argon-button>
               </div>
             </div>
           </div>
-
-          <el-divider />
-          <div class="d-lg-flex justify-content-end gap-3">
-            <argon-button
-              >Exportar Bancos
-              <i class="fas fa-piggy-bank"></i>
-            </argon-button>
-            <argon-button
-              >Exportar
-              <i class="fas fa-file-export"></i>
-            </argon-button>
-          </div>
         </div>
         <div class="px-0 pb-0 card-body">
-          <el-table>
-            <el-table-column label="ID Bonificacion"> </el-table-column>
-            <el-table-column label="Sede"> </el-table-column>
-            <el-table-column label="Tipo"> </el-table-column>
-            <el-table-column label="Fecha"> </el-table-column>
-            <el-table-column label="Fecha creacion"> </el-table-column>
-            <el-table-column label="Estado"> </el-table-column>
+          <el-table
+            v-loading="isLoadingPaymentsReport"
+            :data="paymentsReport.data"
+          >
+            <el-table-column label="ID Pago" width="100px">
+              <template #default="{ row }">
+                <span>{{ getPaymentsId(row.paymentId) }}</span>
+              </template>
+            </el-table-column>
+            <el-table-column label="Estudiante" prop="studentName" />
+            <el-table-column label="Monto" prop="paymentAmount" />
+            <el-table-column label="Fecha" prop="paymentDate" />
+            <el-table-column label="Cobro" prop="collectionStudent" />
           </el-table>
         </div>
         <div class="mt-4 d-flex justify-content-end">
-          <el-pagination background layout="prev, pager, next" :total="1" />
+          <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="paymentsReport.total"
+            @current-change="onChangePage"
+          />
         </div>
         <!-- </div> -->
       </div>
@@ -100,18 +90,89 @@
 </template>
 
 <script>
+import { computed, onMounted, ref } from "vue";
+import { useStore } from "vuex";
 import ArgonButton from "@/components/ArgonButton.vue";
+import { useReports, useFormatDate, usePayments } from "@/composables";
 
 export default {
   name: "PaymentsReport",
   components: { ArgonButton },
-  data() {
+  setup() {
+    //instances
+    const store = useStore();
+
+    const {
+      requestGetPaymentsReport,
+      requestDownloadPaymentsReport,
+      paymentsReport,
+      isLoadingPaymentsReport,
+      isDownloadingPaymentsReport,
+    } = useReports();
+
+    const { formatDateYM } = useFormatDate();
+
+    const { getPaymentsId } = usePayments();
+
+    const studentName = ref("");
+    const startDate = ref("");
+    const endDate = ref("");
+    const pagination = ref({
+      page: 1,
+      take: 10,
+    });
+
+    const params = computed(() => ({
+      studentName: studentName.value,
+      startDate: formatDateYM(startDate.value),
+      endDate: formatDateYM(endDate.value),
+      page: pagination.value.page,
+      take: pagination.value.take,
+    }));
+
+    //methods
+    const onChangePage = (page) => {
+      pagination.value.page = page;
+      onFilter();
+    };
+
+    const onExportReport = async () => {
+      await requestDownloadPaymentsReport({
+        studentName: studentName.value || null,
+        startDate: formatDateYM(startDate.value),
+        endDate: formatDateYM(endDate.value),
+      }).then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `Reporte_Aportes.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+      });
+    };
+
+    const onFilter = async () => {
+      await requestGetPaymentsReport(params.value);
+    };
+
+    onMounted(() => {
+      store.commit("reports/setPaymentsReport", { data: [], total: 0 });
+    });
+
     return {
-      selectedBranch: "",
-      value2: "",
+      studentName,
+      startDate,
+      endDate,
+      pagination,
+      paymentsReport,
+      isLoadingPaymentsReport,
+      isDownloadingPaymentsReport,
+      onExportReport,
+      onFilter,
+      getPaymentsId,
+      onChangePage,
     };
   },
-  mounted() {},
 };
 </script>
 

@@ -41,6 +41,19 @@
 
       <li v-if="userIsAdmin" class="mt-3 nav-item">
         <h6 class="text-xs ps-4 text-uppercase font-weight-bolder opacity-6">
+          Reportes
+        </h6>
+      </li>
+
+      <sidenav-item
+        v-if="userIsAdmin"
+        :to="{ name: 'Payments Report' }"
+        mini-icon="A"
+        text="Reporte Aportes"
+      />
+
+      <li v-if="userIsAdmin" class="mt-3 nav-item">
+        <h6 class="text-xs ps-4 text-uppercase font-weight-bolder opacity-6">
           Utilidades
         </h6>
       </li>

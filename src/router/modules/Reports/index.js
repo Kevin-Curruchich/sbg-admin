@@ -7,11 +7,11 @@ export default {
     ),
   children: [
     {
-      path: "collections",
-      name: "collections-reports",
+      path: "payments",
+      name: "Payments Report",
       component: () =>
         import(
-          /* webpackChunkName: "CollectionReport" */ "@/modules/Reports/views/Collections.vue"
+          /* webpackChunkName: "CollectionReport" */ "@/modules/Reports/views/Payments.vue"
         ),
     },
     {

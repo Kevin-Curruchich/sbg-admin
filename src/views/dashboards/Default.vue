@@ -1,6 +1,12 @@
 <template>
-  <div class="py-4 container-fluid">
-    <div v-loading="isLoadingDashboard" class="row">
+  <div
+    v-if="isLoadingDashboard"
+    class="card d-flex p-5 justify-content-center container-fluid"
+  >
+    <i class="fas fa-spinner"></i>
+  </div>
+  <div v-else class="py-4 container-fluid">
+    <div class="row">
       <div class="col-lg-12">
         <div class="row">
           <div class="col-5">
