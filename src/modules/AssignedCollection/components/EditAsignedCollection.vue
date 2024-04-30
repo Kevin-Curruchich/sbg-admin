@@ -137,7 +137,7 @@ export default {
       default: () => ({}),
     },
   },
-  emits: ["hidde-modal", "accept-modal"],
+  emits: ["hide-modal", "accept-modal"],
   setup(props, { emit }) {
     const requiredMesage = errorMessages.required;
     //instances
@@ -183,7 +183,7 @@ export default {
     //methods
     const onHideModal = () => {
       formRef.value.resetFields();
-      emit("hidde-modal");
+      emit("hide-modal");
     };
 
     const onClearData = () => {
@@ -249,7 +249,6 @@ export default {
       (row) => {
         if (row) {
           lockModal.value = true;
-          console.log(row);
           formModel.value.studentId = row.childrenStudentId;
           formModel.value.collectionName = row.collection.collectionName;
           formModel.value.quartetlyName = row.Quartetly?.quartetlyName;

@@ -2,7 +2,6 @@
   <div class="py-3 container-fluid">
     <div class="row">
       <div class="col-12">
-        <!-- <div class="card"> -->
         <!-- Card header -->
         <div class="pb-0 card-header">
           <div class="d-lg-flex">
@@ -14,7 +13,7 @@
                 <argon-button
                   color="primary"
                   size="lg"
-                  @click="showModal = true"
+                  @click="showModalSelect = true"
                 >
                   Nuevo
                 </argon-button>
@@ -176,19 +175,30 @@
             @current-change="onChangePage"
           />
         </div>
-        <!-- </div> -->
       </div>
     </div>
   </div>
+
+  <SelectCollectionType
+    :show="showModalSelect"
+    @hide-modal="onCloseModal"
+    @accept-modal="onAcceptSelect"
+  />
+
   <AddEditAsignedCollection
     :show="showModal"
-    @hidde-modal="onCloseModal"
+    @hide-modal="onCloseModal"
     @accept-modal="onAcceptModal"
   />
   <EditAsignedCollection
     :show="showModalEdit"
-    :row-selected="rowSelectd"
-    @hidde-modal="onCloseModal"
+    :row-selected="rowSelected"
+    @hide-modal="onCloseModal"
+    @accept-modal="onAcceptModal"
+  />
+  <AddStudentGroupCollection
+    :show="showModalCollectionGroup"
+    @hide-modal="onCloseModal"
     @accept-modal="onAcceptModal"
   />
 </template>
@@ -206,10 +216,18 @@ import {
 import ArgonButton from "@/components/ArgonButton.vue";
 import AddEditAsignedCollection from "../components/AddEditAsignedCollection.vue";
 import EditAsignedCollection from "../components/EditAsignedCollection.vue";
+import SelectCollectionType from "../components/SelectCollectionType.vue";
+import AddStudentGroupCollection from "../components/AddStudentGroupCollection.vue";
 
 export default {
   name: "Collections",
-  components: { ArgonButton, AddEditAsignedCollection, EditAsignedCollection },
+  components: {
+    ArgonButton,
+    AddEditAsignedCollection,
+    EditAsignedCollection,
+    SelectCollectionType,
+    AddStudentGroupCollection,
+  },
   setup() {
     //instances
     const { userIsAdmin } = useAuth();
@@ -240,16 +258,18 @@ export default {
     });
 
     //refs
+    const showModalCollectionGroup = ref(false);
+    const showModalSelect = ref(false);
     const showModal = ref(false);
     const showModalEdit = ref(false);
     const search = ref("");
     const studentCurrentYear = ref("");
     const quartetlyId = ref("");
-    const rowSelectd = ref(null);
+    const rowSelected = ref(null);
 
     //methods
     const onEditCollection = (row) => {
-      rowSelectd.value = row;
+      rowSelected.value = row;
       showModalEdit.value = true;
     };
 
@@ -263,16 +283,31 @@ export default {
       });
     };
 
+    const onAcceptSelect = (data) => {
+      const { collectionType } = data;
+
+      if (collectionType === "student") {
+        showModalSelect.value = false;
+        showModal.value = true;
+      } else {
+        showModalSelect.value = false;
+        showModalCollectionGroup.value = true;
+      }
+    };
+
     const onCloseModal = () => {
+      showModalSelect.value = false;
       showModal.value = false;
       showModalEdit.value = false;
-      rowSelectd.value = null;
+      showModalCollectionGroup.value = false;
+      rowSelected.value = null;
     };
 
     const onAcceptModal = () => {
       showModal.value = false;
       showModalEdit.value = false;
-      rowSelectd.value = null;
+      rowSelected.value = null;
+      showModalCollectionGroup.value = false;
       init();
     };
 
@@ -333,8 +368,11 @@ export default {
       isDownloadingReportByYear,
       onEditCollection,
       showModalEdit,
-      rowSelectd,
+      rowSelected,
       userIsAdmin,
+      showModalSelect,
+      onAcceptSelect,
+      showModalCollectionGroup,
     };
   },
 };

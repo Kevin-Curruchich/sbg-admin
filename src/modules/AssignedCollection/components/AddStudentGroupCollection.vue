@@ -1,6 +1,6 @@
 <template>
-  <modal scrollable :show="showModal" size="lg" :on-hide-modal="onHideModal">
-    <template #header> Asignar cobro </template>
+  <modal scrollable :show="show" size="lg" :on-hide-modal="onHideModal">
+    <template #header> Asignar cobro grupo de estudiantes </template>
     <template #body>
       <el-form
         ref="formRef"
@@ -11,17 +11,17 @@
       >
         <div class="row">
           <div class="col-md-6">
-            <el-form-item label="Estudiante" prop="studentId">
+            <el-form-item label="Tipo de estudiante" prop="studentTypeId">
               <el-select
-                v-model="formModel.studentId"
-                placeholder="Estudiante"
+                v-model="formModel.studentTypeId"
+                placeholder="Tipo de estudiante"
                 filterable
               >
                 <el-option
-                  v-for="student in studentsList.data"
-                  :key="student.studentId"
-                  :value="student.studentId"
-                  :label="student.studentFullName"
+                  v-for="student in studentTypes"
+                  :key="student.studentTypeId"
+                  :value="student.studentTypeId"
+                  :label="student.studentTypeName"
                 />
               </el-select>
             </el-form-item>
@@ -86,6 +86,22 @@
               />
             </el-form-item>
           </div>
+
+          <div class="col-md-12">
+            <el-form-item
+              label="Estudiantes"
+              prop="students"
+              class="d-flex justify-content-center mt-2"
+            >
+              <el-transfer
+                v-model="formModel.students"
+                :data="studentToTransfer"
+                filterable
+                filter-placeholder="Estudiante"
+                :titles="['Estudiantes', 'Seleccionados']"
+              />
+            </el-form-item>
+          </div>
         </div>
       </el-form>
     </template>
@@ -101,7 +117,7 @@
 </template>
 
 <script>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import {
   useStudents,
   useCollections,
@@ -119,48 +135,71 @@ export default {
     ArgonButton,
   },
   props: {
-    showModal: {
+    show: {
       type: Boolean,
       default: false,
     },
   },
   emits: ["hide-modal", "accept-modal"],
   setup(_, { emit }) {
-    const requiredMesage = errorMessages.required;
+    const requiredMessage = errorMessages.required;
     //instances
     const { userIsAcademic } = useAuth();
-    const { requestGetStudentsList, studentsList } = useStudents();
-    const { collections, requestGetCollections, requestPostCollectionStudent } =
-      useCollections();
+    const {
+      requestGetSudentTypes,
+      studentTypes,
+      requestGetStudentListByStudentTypeId,
+      studentByStudentTypeId,
+      isLoadingStudentByStudentTypeId,
+      onSetStudentByStudentTypeId,
+    } = useStudents();
+    const {
+      collections,
+      requestGetCollections,
+      requestPostCollectionStudents,
+    } = useCollections();
     const { requestGetQuartresList, quartersList } = useQuarters();
-
     const { formatDateYMD } = useFormatDate();
 
+    //computed
+    const studentToTransfer = computed(() => {
+      return studentByStudentTypeId.value.data.map((student) => {
+        return {
+          key: student.studentId,
+          label: student.studentFullName,
+        };
+      });
+    });
+
     //refs
+    const selectedStudents = ref([]);
     const lockModal = ref(false);
     const collectionsToStudent = ref([]);
     const formRef = ref(null);
     const formModel = ref({
-      studentId: "",
+      studentTypeId: "",
       collectionId: "",
       quartetlyQuartetlyId: "",
       collectionStudentDate: "",
       collectionStudentAmountOwed: "",
       collectionDescription: "",
+      students: [],
     });
 
     const rules = ref({
-      studentId: [{ required: true, message: requiredMesage }],
-      collectionId: [{ required: true, message: requiredMesage }],
+      studentTypeId: [{ required: true, message: requiredMessage }],
+      collectionId: [{ required: true, message: requiredMessage }],
       collectionStudentAmountOwed: [
-        { required: true, message: requiredMesage },
+        { required: true, message: requiredMessage },
       ],
-      collectionStudentDate: [{ required: true, message: requiredMesage }],
-      quartetlyQuartetlyId: [{ required: true, message: requiredMesage }],
+      collectionStudentDate: [{ required: true, message: requiredMessage }],
+      quartetlyQuartetlyId: [{ required: true, message: requiredMessage }],
+      students: [{ required: true, message: requiredMessage }],
     });
 
     //methods
     const onHideModal = () => {
+      onSetStudentByStudentTypeId();
       formRef.value.resetFields();
       emit("hide-modal");
     };
@@ -181,7 +220,19 @@ export default {
           formModel.value.collectionStudentAmountOwed =
             +formModel.value.collectionStudentAmountOwed;
 
-          requestPostCollectionStudent(formModel.value)
+          const data = {
+            students: formModel.value.students,
+            collection: {
+              collectionId: formModel.value.collectionId,
+              collectionStudentDate: formModel.value.collectionStudentDate,
+              collectionStudentAmountOwed:
+                formModel.value.collectionStudentAmountOwed,
+              collectionDescription: formModel.value.collectionDescription,
+              quartetlyQuartetlyId: formModel.value.quartetlyQuartetlyId,
+            },
+          };
+
+          requestPostCollectionStudents({ data })
             .then(() => {
               onClearData();
               emit("accept-modal");
@@ -195,35 +246,34 @@ export default {
 
     //watchers
     watch(
-      () => formModel.value.studentId,
-      (studentId) => {
-        if (studentId) {
-          lockModal.value = true;
-          formModel.value.collectionId = "";
-          const studentData = studentsList.value.data.find(
-            (student) => student.studentId === studentId
-          );
+      () => formModel.value.studentTypeId,
+      async (studentTypeId) => {
+        if (!studentTypeId) return;
+        lockModal.value = true;
+        formModel.value.collectionId = "";
 
-          formModel.value.collectionStudentAmountOwed = "";
+        formModel.value.collectionStudentAmountOwed = "";
 
-          collectionsToStudent.value = collections.value.filter((collection) =>
-            collection.collectionStudentApply.find(
-              (applyStudent) =>
-                applyStudent.studentTypeId === studentData.studentTypeId
-            )
-          );
+        collectionsToStudent.value = collections.value.filter((collection) =>
+          collection.collectionStudentApply.find(
+            (applyStudent) => applyStudent.studentTypeId === studentTypeId
+          )
+        );
 
-          lockModal.value = false;
-        }
+        await requestGetStudentListByStudentTypeId({
+          studentTypeId: studentTypeId,
+        });
+
+        lockModal.value = false;
       }
     );
 
     watch(
       () => formModel.value.collectionId,
-      (collecitonId) => {
-        if (collecitonId) {
+      (collectionId) => {
+        if (collectionId) {
           const collectionData = collectionsToStudent.value.find(
-            (collection) => collection.collectionId === collecitonId
+            (collection) => collection.collectionId === collectionId
           );
 
           formModel.value.collectionStudentAmountOwed =
@@ -234,7 +284,7 @@ export default {
 
     //lifecycle
     onMounted(() => {
-      requestGetStudentsList();
+      requestGetSudentTypes();
       requestGetCollections();
       requestGetQuartresList();
     });
@@ -246,11 +296,15 @@ export default {
       onSubmit,
       rules,
       lockModal,
-      studentsList,
+      studentTypes,
       collectionsToStudent,
       quartersList,
       userIsAcademic,
       collectionsAcademic,
+      studentByStudentTypeId,
+      isLoadingStudentByStudentTypeId,
+      studentToTransfer,
+      selectedStudents,
     };
   },
 };

@@ -11,7 +11,7 @@ const useQuarters = () => {
   );
 
   const quartersList = computed(
-    () => store.getters["quarters/getQuartersList"]
+    () => store.getters["quarters/getQuartersList"] || []
   );
 
   const quartersByStudent = computed(

@@ -36,3 +36,11 @@ export const getIsLoadingStudentTypes = (state) => {
 export const getStudentYears = (state) => {
   return state.studentYears;
 };
+
+export const getStudentByStudentTypeId = (state) => {
+  return state.studentsByStudentTypeId;
+};
+
+export const getIsLoadingStudentByStudentTypeId = (state) => {
+  return state.isLoadingStudentsByStudentTypeId;
+};

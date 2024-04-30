@@ -102,9 +102,12 @@ export default function useCollection() {
     return resp;
   };
 
-  const collectionId = (id) => {
-    if (!id) return;
-    return id.substring(0, 8);
+  const requestPostCollectionStudents = async ({ data }) => {
+    const resp = await store.dispatch(
+      "collections/requestPostCollectionStudents",
+      { data }
+    );
+    return resp;
   };
 
   const putCollection = async ({ id, data }) => {
@@ -123,6 +126,13 @@ export default function useCollection() {
     });
 
     return resp;
+  };
+
+  //helpers
+
+  const collectionId = (id) => {
+    if (!id) return;
+    return id.substring(0, 8);
   };
 
   return {
@@ -145,5 +155,6 @@ export default function useCollection() {
     requestGetCollectionTypes,
     requestPostCollection,
     requestPostCollectionStudent,
+    requestPostCollectionStudents,
   };
 }

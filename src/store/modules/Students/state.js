@@ -17,4 +17,6 @@ export default () => ({
   isLoadingStudent: false,
   isLoadingStudentTypes: false,
   studentYears: [],
+  studentsByStudentTypeId: [],
+  isLoadingStudentsByStudentTypeId: true,
 });

@@ -1,6 +1,6 @@
 import studentStatus from "@/constants/studentStatus";
 import studentType from "@/constants/studentType";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useStore } from "vuex";
 
 export default function useStudents() {
@@ -25,6 +25,14 @@ export default function useStudents() {
   );
   const studentStatuses = computed(
     () => store.getters["students/getStudentStatuses"]
+  );
+
+  const studentByStudentTypeId = computed(
+    () => store.getters["students/getStudentByStudentTypeId"]
+  );
+
+  const isLoadingStudentByStudentTypeId = computed(
+    () => store.getters["students/getIsLoadingStudentByStudentTypeId"]
   );
 
   const deprecatedStudentYears = [
@@ -79,6 +87,21 @@ export default function useStudents() {
     return resp;
   };
 
+  const requestGetStudentListByStudentTypeId = async ({ studentTypeId }) => {
+    const resp = await store.dispatch(
+      "students/requestGetStudentListByStudentTypeId",
+      {
+        studentTypeId,
+      }
+    );
+    return resp;
+  };
+
+  //commits
+  const onSetStudentByStudentTypeId = (data = { data: [], total: 0 }) => {
+    store.commit("students/setStudentByStudentTypeId", data);
+  };
+
   //helpers
   const getStatusBadge = (status) => {
     let statusId = status;
@@ -105,12 +128,20 @@ export default function useStudents() {
     }
   };
 
+  //lifecycle
+  onMounted(() => {
+    onSetStudentByStudentTypeId();
+  });
+
   return {
     deprecatedStudentYears,
     getStatusBadge,
     getStudentTypeName,
+    isLoadingStudentByStudentTypeId,
     isLoadingStudents,
     isLoadingStudentTypes,
+    onSetStudentByStudentTypeId,
+    requestGetStudentListByStudentTypeId,
     requestGetStudents,
     requestGetStudentsList,
     requestGetStudentStatuses,
@@ -119,6 +150,7 @@ export default function useStudents() {
     requestPostStudent,
     requestPostStudentType,
     requestPutStudent,
+    studentByStudentTypeId,
     students,
     studentsList,
     studentStatuses,

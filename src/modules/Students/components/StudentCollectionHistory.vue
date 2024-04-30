@@ -65,9 +65,17 @@
               <div class="d-flex flex-wrap">
                 <span class="me-2 fs-6">
                   {{ collection.collectionName }}
-                  {{ formatDateDM(collectionStudentDate) }} |
+                  {{ formatDateDm(collectionStudentDate) }} |
                   {{ Quartetly.quartetlyName }}
                 </span>
+
+                <el-tag
+                  v-if="userIsAdmin && collectionStudentAmountOwed > 0"
+                  type="danger"
+                  class="me-2 mt-2"
+                >
+                  Saldo
+                </el-tag>
               </div>
             </template>
 
@@ -193,7 +201,7 @@ export default {
       isLoadingCollectionsByStudent,
       collectionId,
     } = useCollections();
-    const { formatDateDMY, formatDateDM } = useFormatDate();
+    const { formatDateDMY, formatDateDm } = useFormatDate();
     const { requestGetQuartresByStudent, quartersByStudent } = useQuarters();
     const {
       requestDownloadCollectionHistoryByStudent,
@@ -243,7 +251,7 @@ export default {
 
     //lifecycle
     onMounted(() => {
-      requestGetCollectionsByStudent(id, params.value);
+      // requestGetCollectionsByStudent(id, params.value);
       requestGetQuartresByStudent(id);
     });
 
@@ -259,7 +267,7 @@ export default {
       quartersByStudent,
       quarterSelected,
       userIsAdmin,
-      formatDateDM,
+      formatDateDm,
       totalAmountOwed,
     };
   },

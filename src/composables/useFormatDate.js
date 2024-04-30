@@ -15,5 +15,15 @@ export default function useFormatDate() {
     return moment(date).utc().format("DD/MM");
   };
 
-  return { formatDateDMY, formatDateDMYH, formatDateYMD, formatDateDM };
+  const formatDateDm = (date) => {
+    return moment(date).utc().format("D MMM");
+  };
+
+  return {
+    formatDateDMY,
+    formatDateDMYH,
+    formatDateYMD,
+    formatDateDM,
+    formatDateDm,
+  };
 }

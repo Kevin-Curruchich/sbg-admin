@@ -82,6 +82,26 @@ export const requestGetSudentTypes = async ({ commit }) => {
   });
 };
 
+export const requestGetStudentListByStudentTypeId = async (
+  { commit },
+  { studentTypeId }
+) => {
+  return new Promise((resolve, reject) => {
+    commit("setIsLoadingStudentByStudentTypeId", true);
+    sbgApi
+      .get(`/students/types/${studentTypeId}`)
+      .then((response) => {
+        commit("setStudentByStudentTypeId", response.data);
+        commit("setIsLoadingStudentByStudentTypeId", false);
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        reject(error);
+      });
+  });
+};
+
 export const requestGetStudentYears = async ({ commit }) => {
   return new Promise((resolve, reject) => {
     sbgApi
