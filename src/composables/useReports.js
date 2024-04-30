@@ -17,6 +17,18 @@ const useReports = () => {
     () => store.getters["reports/getIsDownloadingStudentsPersonalData"]
   );
 
+  const paymentsReport = computed(
+    () => store.getters["reports/getPaymentsReport"]
+  );
+
+  const isLoadingPaymentsReport = computed(
+    () => store.getters["reports/getIsLoadingPaymentsReport"]
+  );
+
+  const isDownloadingPaymentsReport = computed(
+    () => store.getters["reports/getIsDownloadingPaymentsReport"]
+  );
+
   //methods
   const requestDownloadCollectionHistoryByStudent = (id, params) => {
     const resp = store.dispatch(
@@ -39,6 +51,18 @@ const useReports = () => {
     return resp;
   };
 
+  const requestGetPaymentsReport = (params) => {
+    const resp = store.dispatch("reports/requestGetPaymentsReport", { params });
+    return resp;
+  };
+
+  const requestDownloadPaymentsReport = (params) => {
+    const resp = store.dispatch("reports/requestDownloadPaymentsReport", {
+      params,
+    });
+    return resp;
+  };
+
   return {
     isDownlodReportByStudent,
     requestDownloadCollectionHistoryByStudent,
@@ -46,6 +70,11 @@ const useReports = () => {
     requestDownloadCollectionHistoryByYear,
     isDownloadingStudentsPersonalData,
     requestDownloadStudentsPersonalData,
+    requestGetPaymentsReport,
+    requestDownloadPaymentsReport,
+    paymentsReport,
+    isLoadingPaymentsReport,
+    isDownloadingPaymentsReport,
   };
 };
 

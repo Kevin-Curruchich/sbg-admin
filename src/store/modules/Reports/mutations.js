@@ -9,3 +9,15 @@ export const setIsDownloadingReportByYear = (state, val) => {
 export const setIsDownloadingStudentsPersonalData = (state, val) => {
   state.isDownloadingStudentsPersonalData = val;
 };
+
+export const setPaymentsReport = (state, val) => {
+  state.paymentsReport = val;
+};
+
+export const setIsLoadingPaymentsReport = (state, val) => {
+  state.isLoadingPaymentsReport = val;
+};
+
+export const setIsDownloadingPaymentsReport = (state, val) => {
+  state.isDownloadingPaymentsReport = val;
+};

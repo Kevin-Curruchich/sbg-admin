@@ -153,6 +153,7 @@
         <div class="mt-4 d-flex justify-content-end">
           <!-- v-model="params.page" -->
           <el-pagination
+            v-model="currentPage"
             background
             layout="prev, pager, next"
             :total="students.total"
