@@ -153,7 +153,7 @@
         <div class="mt-4 d-flex justify-content-end">
           <!-- v-model="params.page" -->
           <el-pagination
-            v-model="currentPage"
+            v-model="params.page"
             background
             layout="prev, pager, next"
             :total="students.total"
@@ -218,7 +218,7 @@ export default {
     const paramsGetStudents = computed(() => ({
       page: params.value.page,
       take: params.value.take,
-      search: search.value || null,
+      searchQuery: search.value || null,
       studentTypeId: selectedStudentType.value || null,
       studentStatusId: selectedStatus.value || null,
       studentCurrentYear: studentCurrentYear.value || null,

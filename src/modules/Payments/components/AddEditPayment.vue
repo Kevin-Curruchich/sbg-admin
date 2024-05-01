@@ -37,7 +37,7 @@
                   v-for="collection in collectionsOwedByStudent"
                   :key="collection.collectionStudentId"
                   :value="collection.collectionStudentId"
-                  :label="`${collection.collection.collectionName} - ${collection.Quartetly.quartetlyName} `"
+                  :label="`${collection.collection.collectionName} | ${collection?.collectionStudentDate} | ${collection.Quartetly.quartetlyName} `"
                 />
               </el-select>
             </el-form-item>

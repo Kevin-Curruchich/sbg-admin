@@ -8,5 +8,5 @@ export default () => ({
   collectionsOwedByStudent: [],
   isLoadingCollectionsOwedByStudent: true,
   collectionsByStudent: [],
-  isLoadingCollectionsByStudent: true,
+  isLoadingCollectionsByStudent: false,
 });

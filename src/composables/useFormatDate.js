@@ -20,7 +20,7 @@ export default function useFormatDate() {
   };
 
   const formatDateDm = (date) => {
-    return moment(date).utc().format("D MMM");
+    return moment(date).locale("es").utc().format("DD-MMMM");
   };
 
   return {

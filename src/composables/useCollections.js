@@ -135,6 +135,11 @@ export default function useCollection() {
     return id.substring(0, 8);
   };
 
+  //SETTERS
+  const setCollectionsByStudent = (val) => {
+    store.commit("collections/setCollectionsByStudent", val);
+  };
+
   return {
     assignedCollections,
     collectionId,
@@ -156,5 +161,6 @@ export default function useCollection() {
     requestPostCollection,
     requestPostCollectionStudent,
     requestPostCollectionStudents,
+    setCollectionsByStudent,
   };
 }

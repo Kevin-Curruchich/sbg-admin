@@ -1,7 +1,11 @@
 <template>
   <div class="container-fluid">
     <div class="row mb-3">
-      <el-card shadow="never" class="col-md-12">
+      <el-card
+        v-if="quarterSelected && collectionsByStudent.length > 0"
+        shadow="never"
+        class="col-md-12"
+      >
         <span class="me-2 fs-6">Saldo total: </span>
         <b>
           {{ `Q.${(totalAmountOwed + 0).toLocaleString("es-GT")}` }}
@@ -16,7 +20,6 @@
             v-model="quarterSelected"
             placeholder="Seleccione trimestre"
           >
-            <el-option value="" label="Todos" />
             <el-option
               v-for="item in quartersByStudent"
               :key="item.Quartetly.quartetlyId"
@@ -42,7 +45,14 @@
       </div>
     </div>
 
-    <div class="row">
+    <el-card v-if="!collectionsByStudent.length > 0" shadow="never" class="row">
+      <span class="fs-6 text">
+        Seleccione un <strong>trimestre</strong> y presione
+        <strong>Filtrar</strong> para ver el historial de cobros y aportes
+      </span>
+    </el-card>
+
+    <div class="row" else>
       <div class="col-sm-12">
         <el-collapse
           id="collapse-student-collection-history"
@@ -64,7 +74,7 @@
             <template #title>
               <div class="d-flex flex-wrap">
                 <span class="me-2 fs-6">
-                  {{ collection.collectionName }}
+                  {{ collection.collectionName }} |
                   {{ formatDateDm(collectionStudentDate) }} |
                   {{ Quartetly.quartetlyName }}
                 </span>
@@ -127,6 +137,10 @@
                 </tr>
               </table>
               <span><b>Descripción:</b> {{ collectionDescription }}</span>
+              <br />
+              <span
+                ><b>Fecha:</b> {{ formatDateDMY(collectionStudentDate) }}</span
+              >
             </el-card>
 
             <el-card v-if="Payment.length === 0" shadow="never">
@@ -200,6 +214,7 @@ export default {
       collectionsByStudent,
       isLoadingCollectionsByStudent,
       collectionId,
+      setCollectionsByStudent,
     } = useCollections();
     const { formatDateDMY, formatDateDm } = useFormatDate();
     const { requestGetQuartresByStudent, quartersByStudent } = useQuarters();
@@ -251,7 +266,7 @@ export default {
 
     //lifecycle
     onMounted(() => {
-      // requestGetCollectionsByStudent(id, params.value);
+      setCollectionsByStudent([]);
       requestGetQuartresByStudent(id);
     });
 
