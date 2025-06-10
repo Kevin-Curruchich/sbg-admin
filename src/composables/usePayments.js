@@ -22,9 +22,7 @@ export default function usePayments() {
 
   //methods
   //get
-  const requestGetPayments = async (
-    params = { page: 1, take: 10, searchQuery: "", currentYear: "" }
-  ) => {
+  const requestGetPayments = async (params = { page: 1, take: 10 }) => {
     await store.dispatch("payments/requestGetPayments", params);
   };
 
@@ -37,6 +35,14 @@ export default function usePayments() {
     const response = await store.dispatch(
       "payments/requestPostPayments",
       params
+    );
+    return response;
+  };
+
+  const requestPostGlobalStudentsPayment = async (data) => {
+    const response = await store.dispatch(
+      "payments/requestPostGlobalStudentsPayment",
+      data
     );
     return response;
   };
@@ -107,5 +113,6 @@ export default function usePayments() {
     requestGetPayments,
     requestPostPayments,
     requestPostInvoiceMail,
+    requestPostGlobalStudentsPayment,
   };
 }

@@ -29,7 +29,7 @@
         </template>
       </sidenav-item>
       <sidenav-item
-        v-if="userIsAdmin"
+        v-if="userIsAdmin || userIsAcademic"
         :to="{ name: 'Payments List' }"
         mini-icon="A"
         text="Aportes"

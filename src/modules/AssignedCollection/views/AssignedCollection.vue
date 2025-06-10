@@ -13,6 +13,7 @@
                 <argon-button
                   color="primary"
                   size="lg"
+                  :disabled="isLoadingAssignedCollections"
                   @click="showModalSelect = true"
                 >
                   Nuevo
@@ -21,7 +22,7 @@
             </div>
           </div>
           <div class="row mt-3">
-            <div class="col-md-3">
+            <div class="col-md-5">
               <label class="form-label"> Buscar </label>
               <div class="">
                 <el-input
@@ -32,43 +33,33 @@
                 />
               </div>
             </div>
-            <div class="col-md-3">
-              <label class="form-label"> Año estudiante </label>
+
+            <div class="col-md-5">
+              <label class="form-label"> Mes </label>
               <div>
-                <el-select v-model="studentCurrentYear">
-                  <el-option label="Todos" value=""></el-option>
-                  <el-option
-                    v-for="item in studentYears"
-                    :key="item.year"
-                    :value="item.year"
-                    :label="item.label"
-                  />
-                </el-select>
+                <el-date-picker
+                  v-model="due_date"
+                  type="month"
+                  format="MM-YYYY"
+                  value-format="YYYY-MM"
+                  placeholder="Mes"
+                  :clearable="true"
+                  class="w-100"
+                />
               </div>
             </div>
-            <div class="col-md-3">
-              <label class="form-label"> Trimestre </label>
-              <div>
-                <el-select v-model="quartetlyId">
-                  <el-option label="Todos" value=""></el-option>
-                  <el-option
-                    v-for="item in quartersList"
-                    :key="item.quartetlyId"
-                    :value="item.quartetlyId"
-                    :label="item.quartetlyName"
-                  />
-                </el-select>
-              </div>
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <div
                 class="h-100 d-flex align-items-end justify-content-between px-2"
               >
-                <argon-button @click="filter"
-                  >Filtrar
+                <argon-button
+                  :disabled="isLoadingAssignedCollections"
+                  @click="onFilter"
+                >
+                  Filtrar
                   <i class="fas fa-filter"></i>
                 </argon-button>
-                <argon-button
+                <!-- <argon-button
                   v-if="userIsAdmin"
                   color="secondary"
                   class="mb-0"
@@ -81,7 +72,7 @@
                     v-show="!isDownloadingReportByYear"
                     class="fas fa-download mx-2"
                   ></i>
-                </argon-button>
+                </argon-button> -->
               </div>
             </div>
           </div>
@@ -96,71 +87,46 @@
           >
             <el-table-column label="Estudiate" min-width="250">
               <template #default="{ row }">
-                {{ row.studentFullName }}
+                {{ row.students?.first_name }} {{ row.students?.last_name }}
               </template>
             </el-table-column>
             <el-table-column label="Cobro" min-width="200">
               <template #default="{ row }">
-                {{ row?.collection?.collectionName }}
+                {{ row?.charge_types?.name }} -
+                {{ row?.due_date_formatted }}
+                <br />
+                <span class="text-muted">{{
+                  row?.charge_types?.description
+                }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="Trimestre" min-width="100">
+            <el-table-column label="Mes" width="100">
               <template #default="{ row }">
-                {{ row?.Quartetly?.quartetlyName }}
+                {{ row?.due_date_formatted }}
               </template>
             </el-table-column>
-            <el-table-column label="Cobro" min-width="100">
+            <el-table-column label="Cobro Actual" min-width="100">
               <template #default="{ row }">
-                {{
-                  `${
-                    row?.collectionStudentAmountOwed ||
-                    row?.collectionStudentAmountPaid
-                      ? `Q. ${(
-                          row?.collectionStudentAmountOwed +
-                          row?.collectionStudentAmountPaid
-                        ).toLocaleString("es-GT")}`
-                      : ""
-                  }`
-                }}
+                {{ row.currentAmountFormatted }}
               </template>
             </el-table-column>
             <el-table-column label="Abonado" min-width="100">
               <template #default="{ row }">
                 <div class="text-success">
-                  {{
-                    `${
-                      row?.collectionStudentAmountPaid
-                        ? `Q. ${(row?.collectionStudentAmountPaid).toLocaleString(
-                            "es-GT"
-                          )}`
-                        : ""
-                    }`
-                  }}
+                  {{ row.totalAmountPaidFormatted }}
                 </div>
               </template>
             </el-table-column>
             <el-table-column label="Saldo" min-width="100">
               <template #default="{ row }">
                 <div class="text-danger">
-                  {{
-                    `${
-                      row?.collectionStudentAmountOwed
-                        ? `Q. ${(row?.collectionStudentAmountOwed).toLocaleString(
-                            "es-GT"
-                          )}`
-                        : ""
-                    }`
-                  }}
+                  {{ row.totalAmountDueFormatted }}
                 </div>
               </template>
             </el-table-column>
-            <el-table-column label="Acciones" min-width="100">
+            <el-table-column width="80">
               <template #default="{ row }">
-                <el-button
-                  v-show="row?.collectionStudentId"
-                  size="small"
-                  @click="onEditCollection(row)"
-                >
+                <el-button size="small" @click="onEditCollection(row)">
                   <i class="fas fa-edit"></i>
                 </el-button>
               </template>
@@ -169,10 +135,12 @@
         </div>
         <div class="mt-4 d-flex justify-content-end">
           <el-pagination
+            v-model:current-page="pagination.page"
+            :disabled="isLoadingAssignedCollections"
+            :page-size="pagination.take"
+            :total="assignedCollections.total"
             background
             layout="prev, pager, next"
-            :total="assignedCollections.total"
-            @current-change="onChangePage"
           />
         </div>
       </div>
@@ -204,11 +172,10 @@
 </template>
 
 <script>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import {
   useCollections,
   useFormatDate,
-  useStudents,
   useQuarters,
   useReports,
   useAuth,
@@ -233,7 +200,6 @@ export default {
     const { userIsAdmin } = useAuth();
     const {
       isLoadingAssignedCollections,
-      onChangePage,
       assignedCollections,
       total,
       collectionId,
@@ -246,16 +212,8 @@ export default {
       requestDownloadCollectionHistoryByYear,
     } = useReports();
 
-    const { studentYears } = useStudents();
     const { formatDateDMY, formatDateDMYH } = useFormatDate();
     const { quartersList } = useQuarters();
-
-    const yearSelected = computed(() => {
-      const year = studentYears.value.find(
-        (item) => item.year === studentCurrentYear.value
-      );
-      return year ? year.label : "SBG";
-    });
 
     //refs
     const showModalCollectionGroup = ref(false);
@@ -263,9 +221,23 @@ export default {
     const showModal = ref(false);
     const showModalEdit = ref(false);
     const search = ref("");
-    const studentCurrentYear = ref("");
-    const quartetlyId = ref("");
+    const due_date = ref("");
+
+    const charge_type_id = ref("");
     const rowSelected = ref(null);
+    const pagination = reactive({
+      page: 1,
+      take: 10,
+    });
+
+    //computed
+    const queryParams = computed(() => ({
+      search_query: search.value || null,
+      due_date: due_date.value || null,
+      charge_type_id: charge_type_id.value || null,
+      page: pagination.page,
+      take: pagination.take,
+    }));
 
     //methods
     const onEditCollection = (row) => {
@@ -273,14 +245,8 @@ export default {
       showModalEdit.value = true;
     };
 
-    const filter = () => {
-      requestGetAssignedCollections({
-        take: 10,
-        page: 1,
-        searchQuery: search.value,
-        currentYear: studentCurrentYear.value,
-        quartetlyId: quartetlyId.value,
-      });
+    const onFilter = () => {
+      requestGetAssignedCollections(queryParams.value);
     };
 
     const onAcceptSelect = (data) => {
@@ -308,61 +274,52 @@ export default {
       showModalEdit.value = false;
       rowSelected.value = null;
       showModalCollectionGroup.value = false;
-      init();
+      requestGetAssignedCollections();
     };
 
     const onDownloadReport = () => {
       requestDownloadCollectionHistoryByYear({
-        searchQuery: search.value,
-        currentYear: studentCurrentYear.value,
-        quartetlyId: quartetlyId.value,
+        search_query: search.value,
+
+        charge_type_id: charge_type_id.value,
       }).then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
         link.href = url;
-        link.setAttribute("download", `Reporte_${yearSelected.value}.xlsx`);
+        link.setAttribute("download", `Reporte.xlsx`);
         document.body.appendChild(link);
         link.click();
       });
     };
 
-    const init = () => {
-      requestGetAssignedCollections({
-        searchQuery: search.value,
-        currentYear: studentCurrentYear.value,
-        quartetlyId: quartetlyId.value,
-        page: 1,
-        take: 10,
-      });
-    };
+    watch(
+      () => pagination.page,
+      (newPage) => {
+        pagination.page = newPage;
+        requestGetAssignedCollections(queryParams.value);
+      }
+    );
 
     onMounted(() => {
-      requestGetAssignedCollections({
-        take: 10,
-        page: 1,
-        searchQuery: search.value,
-        currentYear: studentCurrentYear.value,
-        quartetlyId: quartetlyId.value,
-      });
+      requestGetAssignedCollections();
     });
 
     return {
       assignedCollections,
       collectionId,
-      filter,
+      onFilter,
       formatDateDMY,
       formatDateDMYH,
       getStatusBadge,
       isLoadingAssignedCollections,
       onAcceptModal,
-      onChangePage,
       onCloseModal,
       quartersList,
-      quartetlyId,
+      charge_type_id,
       search,
       showModal,
-      studentCurrentYear,
-      studentYears,
+      due_date,
+
       total,
       onDownloadReport,
       isDownloadingReportByYear,
@@ -373,6 +330,7 @@ export default {
       showModalSelect,
       onAcceptSelect,
       showModalCollectionGroup,
+      pagination,
     };
   },
 };

@@ -17,9 +17,20 @@ export default function useStudent() {
     return resp;
   };
 
+  const requestPutStudent = async ({ data, studentId }) => {
+    const resp = await store.dispatch("students/requestPutStudent", {
+      data,
+      studentId,
+    });
+    return resp;
+  };
+
+  //Student academic grade history
+
   return {
     student,
     isLoadingStudent,
     requestGetStudentById,
+    requestPutStudent,
   };
 }

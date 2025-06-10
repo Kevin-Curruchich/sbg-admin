@@ -26,3 +26,4 @@ pnpm-debug.log*
 # yarn.lock
 
 functions
+.firebase

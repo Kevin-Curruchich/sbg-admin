@@ -1,5 +1,5 @@
-export const setCollection = (state, val) => {
-  state.collections = val;
+export const setCollectionList = (state, val) => {
+  state.collectionsList = val;
 };
 export const setIsLoadingCollections = (state, val) => {
   state.isLoadingCollection = val;
@@ -35,4 +35,12 @@ export const setCollectionsByStudent = (state, val) => {
 
 export const setIsLoadingCollectionsByStudent = (state, val) => {
   state.isLoadingCollectionsByStudent = val;
+};
+
+export const setCollectionStatuses = (state, val) => {
+  state.collectionStatuses = val;
+};
+
+export const setStudentBalance = (state, val) => {
+  state.studentBalance = val;
 };

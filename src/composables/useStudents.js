@@ -1,4 +1,4 @@
-import studentStatus from "@/constants/studentStatus";
+import { studentStatus } from "@/constants/studentStatus";
 import studentType from "@/constants/studentType";
 import { computed, onMounted, ref } from "vue";
 import { useStore } from "vuex";
@@ -15,10 +15,10 @@ export default function useStudents() {
   const isLoadingStudents = computed(
     () => store.getters["students/getIsLoadingStudents"]
   );
-  const studentTypes = computed(() => store.getters["students/getSudentTypes"]);
-  const studentYears = computed(
-    () => store.getters["students/getStudentYears"]
+  const studentTypes = computed(
+    () => store.getters["students/getStudentTypes"]
   );
+
   const studentTypesTotal = ref(studentTypes.value.length);
   const isLoadingStudentTypes = computed(
     () => store.getters["students/getIsLoadingStudentTypes"]
@@ -27,42 +27,45 @@ export default function useStudents() {
     () => store.getters["students/getStudentStatuses"]
   );
 
-  const studentByStudentTypeId = computed(
-    () => store.getters["students/getStudentByStudentTypeId"]
+  const studentsListWithFilters = computed(
+    () => store.getters["students/getStudentListFiltered"]
   );
 
   const isLoadingStudentByStudentTypeId = computed(
     () => store.getters["students/getIsLoadingStudentByStudentTypeId"]
   );
 
-  const deprecatedStudentYears = [
-    { year: 0, label: "Especiales" },
-    { year: 1, label: "Primer" },
-    { year: 2, label: "Segundo" },
-    { year: 3, label: "Tercer" },
-    { year: 4, label: "Cuarto" },
-  ];
-
   //methods
   const requestGetStudents = async (params = { page: 1, take: 10 }) => {
     await store.dispatch("students/requestGetStudents", params);
   };
 
-  const requestGetStudentsList = async () => {
-    await store.dispatch("students/requestGetStudentsList");
+  const requestGetStudentsList = async (params = {}) => {
+    await store.dispatch("students/requestGetStudentsList", params);
   };
 
   const requestGetStudentStatuses = async () => {
     await store.dispatch("students/requestGetStudentStatuses");
   };
 
-  const requestGetSudentTypes = async () => {
-    await store.dispatch("students/requestGetSudentTypes");
+  const requestGetStudentTypes = async () => {
+    await store.dispatch("students/requestGetStudentTypes");
   };
 
-  const requestGetStudentYears = async () => {
-    const resp = await store.dispatch("students/requestGetStudentYears");
+  const requestGetProgramLevels = async (programId) => {
+    if (!programId) {
+      return;
+    }
+
+    const resp = await store.dispatch(
+      "students/requestGetProgramLevels",
+      programId
+    );
     return resp;
+  };
+
+  const requestGetPrograms = async () => {
+    await store.dispatch("students/requestGetPrograms");
   };
 
   //post request
@@ -79,27 +82,19 @@ export default function useStudents() {
     return resp;
   };
 
-  const requestPutStudent = async ({ data, studentId }) => {
-    const resp = await store.dispatch("students/requestPutStudent", {
-      data,
-      studentId,
-    });
-    return resp;
-  };
-
-  const requestGetStudentListByStudentTypeId = async ({ studentTypeId }) => {
+  const requestGetStudentListFiltered = async (params) => {
     const resp = await store.dispatch(
-      "students/requestGetStudentListByStudentTypeId",
+      "students/requestGetStudentListFiltered",
       {
-        studentTypeId,
+        params,
       }
     );
     return resp;
   };
 
   //commits
-  const onSetStudentByStudentTypeId = (data = { data: [], total: 0 }) => {
-    store.commit("students/setStudentByStudentTypeId", data);
+  const onSetStudentListFiltered = (data = []) => {
+    store.commit("students/setStudentsListFiltered", data);
   };
 
   //helpers
@@ -130,32 +125,30 @@ export default function useStudents() {
 
   //lifecycle
   onMounted(() => {
-    onSetStudentByStudentTypeId();
+    onSetStudentListFiltered();
   });
 
   return {
-    deprecatedStudentYears,
     getStatusBadge,
     getStudentTypeName,
     isLoadingStudentByStudentTypeId,
     isLoadingStudents,
     isLoadingStudentTypes,
-    onSetStudentByStudentTypeId,
-    requestGetStudentListByStudentTypeId,
+    onSetStudentListFiltered,
+    requestGetStudentListFiltered,
     requestGetStudents,
     requestGetStudentsList,
     requestGetStudentStatuses,
-    requestGetStudentYears,
-    requestGetSudentTypes,
+    requestGetProgramLevels,
+    requestGetStudentTypes,
     requestPostStudent,
     requestPostStudentType,
-    requestPutStudent,
-    studentByStudentTypeId,
+    studentsListWithFilters,
     students,
     studentsList,
     studentStatuses,
     studentTypes,
     studentTypesTotal,
-    studentYears,
+    requestGetPrograms,
   };
 }

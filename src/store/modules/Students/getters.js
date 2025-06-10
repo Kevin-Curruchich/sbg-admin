@@ -25,7 +25,7 @@ export const getStudentStatuses = (state) => {
   return state.studentStatuses;
 };
 
-export const getSudentTypes = (state) => {
+export const getStudentTypes = (state) => {
   return state.studentTypes;
 };
 
@@ -33,12 +33,8 @@ export const getIsLoadingStudentTypes = (state) => {
   return state.isLoadingStudentTypes;
 };
 
-export const getStudentYears = (state) => {
-  return state.studentYears;
-};
-
-export const getStudentByStudentTypeId = (state) => {
-  return state.studentsByStudentTypeId;
+export const getStudentListFiltered = (state) => {
+  return state.studentsListFiltered;
 };
 
 export const getIsLoadingStudentByStudentTypeId = (state) => {

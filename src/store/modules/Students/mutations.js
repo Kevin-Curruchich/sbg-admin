@@ -26,7 +26,7 @@ export const setStudentStatuses = (state, val) => {
   state.studentStatuses = val;
 };
 
-export const setSudentTypes = (state, val) => {
+export const setStudentTypes = (state, val) => {
   state.studentTypes = val;
 };
 
@@ -34,12 +34,8 @@ export const setIsLoadingStudentTypes = (state, val) => {
   state.isLoadingStudentTypes = val;
 };
 
-export const setStudentYears = (state, val) => {
-  state.studentYears = val;
-};
-
-export const setStudentByStudentTypeId = (state, val) => {
-  state.studentsByStudentTypeId = val;
+export const setStudentsListFiltered = (state, val) => {
+  state.studentsListFiltered = val;
 };
 
 export const setIsLoadingStudentByStudentTypeId = (state, val) => {

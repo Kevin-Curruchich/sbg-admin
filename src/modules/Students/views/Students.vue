@@ -18,63 +18,86 @@
             </div>
           </div>
           <div class="row mt-3">
-            <div class="col-md-3">
-              <label class="form-label"> Buscar </label>
-              <div class="">
-                <el-input
-                  v-model="search"
-                  clearable
-                  type="text"
-                  placeholder="Buscar"
-                />
+            <div class="col-md-9">
+              <div class="row">
+                <div class="col-md-6">
+                  <label class="form-label"> Buscar </label>
+                  <div class="">
+                    <el-input
+                      v-model="search"
+                      clearable
+                      type="text"
+                      placeholder="Buscar"
+                    />
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label"> Estado </label>
+                  <div>
+                    <el-select v-model="selectedStatus" filterable clearable>
+                      <el-option label="Todos" value=""></el-option>
+                      <el-option
+                        v-for="item in studentStatuses"
+                        :key="item.studentStatusId"
+                        :value="item.studentStatusId"
+                        :label="item.studentStatussName"
+                      >
+                        {{ item.studentStatussName }}
+                      </el-option>
+                    </el-select>
+                  </div>
+                </div>
+
+                <div class="col-md-5">
+                  <label class="form-label"> Programa </label>
+                  <div>
+                    <el-select v-model="studentProgramId" filterable clearable>
+                      <el-option label="Todos" value=""></el-option>
+                      <el-option
+                        v-for="item in programs"
+                        :key="item.program_id"
+                        :value="item.program_id"
+                        :label="item.name"
+                      />
+                    </el-select>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label"> Tipo de estudiante </label>
+                  <div>
+                    <el-select
+                      v-model="selectedStudentType"
+                      filterable
+                      clearable
+                    >
+                      <el-option label="Todos" value=""></el-option>
+                      <el-option
+                        v-for="item in studentTypes"
+                        :key="item.student_type_id"
+                        :value="item.student_type_id"
+                        :label="item.name"
+                      />
+                    </el-select>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label"> Nivel </label>
+                  <div>
+                    <el-select v-model="programLevelId" filterable clearable>
+                      <el-option label="Todos" value=""></el-option>
+                      <el-option
+                        v-for="item in programLevels"
+                        :key="item.program_level_id"
+                        :value="item.program_level_id"
+                        :label="item.name"
+                      />
+                    </el-select>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="col-md-3">
-              <label class="form-label"> Tipo de estudiante </label>
-              <div>
-                <el-select v-model="selectedStudentType">
-                  <el-option label="Todos" value=""></el-option>
-                  <el-option
-                    v-for="item in studentTypes"
-                    :key="item.studentTypeId"
-                    :value="item.studentTypeId"
-                    :label="item.studentTypeName"
-                  />
-                </el-select>
-              </div>
-            </div>
-            <div class="col-md-2">
-              <label class="form-label"> Año </label>
-              <div>
-                <el-select v-model="studentCurrentYear">
-                  <el-option label="Todos" value=""></el-option>
-                  <el-option
-                    v-for="item in deprecatedStudentYears"
-                    :key="item.year"
-                    :value="item.year"
-                    :label="item.label"
-                  />
-                </el-select>
-              </div>
-            </div>
-            <!-- <div class="col-md-2">
-              <label class="form-label"> Estado </label>
-              <div>
-                <el-select v-model="selectedStatus">
-                  <el-option label="Todos" value=""></el-option>
-                  <el-option
-                    v-for="item in studentStatuses"
-                    :key="item.studentStatusId"
-                    :value="item.studentStatusId"
-                    :label="item.studentStatussName"
-                  >
-                    {{ item.studentStatussName }}
-                  </el-option>
-                </el-select>
-              </div>
-            </div> -->
-            <div class="col-md-4">
-              <div class="h-100 d-flex align-items-end justify-content-end">
+              <div class="h-100 d-flex align-items-center justify-content-end">
                 <argon-button
                   class="mx-2"
                   :disabled="isDownloadingStudentsPersonalData"
@@ -105,36 +128,36 @@
             :data="students.data"
             style="width: 100%"
           >
-            <el-table-column label="Nombre" min-width="200px">
+            <el-table-column label="Nombre" min-width="220px">
               <template #default="{ row }">
                 <a
                   href="#"
                   class="text-primary"
-                  @click="onNavStudent(row.studentId)"
-                  >{{ `${row.studentName} ${row.studentLastName}` }}
+                  @click="onNavStudent(row.student_id)"
+                  >{{ `${row.first_name} ${row.last_name}` }}
                 </a>
                 <br />
-                <span><b>DPI:</b> {{ row.studentDni }}</span>
+                <span><b>DPI:</b> {{ row.document_id }}</span>
               </template>
             </el-table-column>
             <el-table-column label="Contacto" min-width="200px">
               <template #default="{ row }">
-                <span><b>Telefono:</b> {{ row.studentPhone }}</span>
+                <span><b>Telefono:</b> {{ row.phone_number }}</span>
                 <br />
-                <span><b>Correo:</b> {{ row.studentEmail }}</span>
+                <span><b>Correo:</b> {{ row.email }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="Tipo de estudiante" min-width="100px">
+            <el-table-column label="Tipo" width="100px">
               <template #default="{ row }">
-                {{ row.StudentType?.studentTypeName }}
+                {{ row.student_types?.name }}
               </template>
             </el-table-column>
-            <el-table-column label="Año" width="80px">
+            <el-table-column label="Nivel" min-width="90px">
               <template #default="{ row }">
                 {{
-                  row?.studentCurrentYear === 0
-                    ? "Esp"
-                    : row?.studentCurrentYear
+                  row?.student_grades.length > 0
+                    ? row.student_grades[0].program_levels.name
+                    : "Sin Asignar"
                 }}
               </template>
             </el-table-column>
@@ -144,7 +167,7 @@
                   :type="getStatusBadge(row.studentStatusId)"
                   effect="dark"
                 >
-                  {{ row.StudentStatus?.studentStatusName }}
+                  {{ row.student_statuses?.name }}
                 </el-tag>
               </template>
             </el-table-column>
@@ -168,13 +191,13 @@
   </div>
   <add-edit-student
     :show-modal="showModal"
-    @hidde-modal="hiddeModal"
+    @hidde-modal="hideModal"
     @accept-modal="acceptModal"
   />
 </template>
 
 <script>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useStudents, useReports } from "@/composables";
 import ArgonButton from "@/components/ArgonButton.vue";
@@ -195,7 +218,11 @@ export default {
       isLoadingStudents,
       requestGetStudents,
       getStatusBadge,
-      deprecatedStudentYears,
+      programLevels,
+      requestGetProgramLevels,
+      programs,
+      requestGetPrograms,
+      requestGetStudentTypes,
     } = useStudents();
 
     const {
@@ -208,7 +235,8 @@ export default {
     const selectedStatus = ref("");
     const selectedStudentType = ref("");
     const search = ref("");
-    const studentCurrentYear = ref("");
+    const studentProgramId = ref("");
+    const programLevelId = ref("");
     const params = ref({
       page: 1,
       take: 10,
@@ -219,9 +247,10 @@ export default {
       page: params.value.page,
       take: params.value.take,
       searchQuery: search.value || null,
-      studentTypeId: selectedStudentType.value || null,
-      studentStatusId: selectedStatus.value || null,
-      studentCurrentYear: studentCurrentYear.value || null,
+      student_type_id: selectedStudentType.value || null,
+      student_status_id: selectedStatus.value || null,
+      program_id: studentProgramId.value || null,
+      program_level_id: programLevelId.value || null,
     }));
 
     //methods
@@ -254,25 +283,40 @@ export default {
       showModal.value = true;
     };
 
-    const hiddeModal = () => {
+    const hideModal = () => {
       showModal.value = false;
     };
 
     const acceptModal = () => {
-      hiddeModal();
+      hideModal();
       requestGetStudents();
     };
 
+    watch(
+      studentProgramId,
+      async () => {
+        if (!studentProgramId.value) {
+          return;
+        }
+
+        await requestGetProgramLevels(studentProgramId.value);
+      },
+      {
+        immediate: true,
+      }
+    );
+
     //lifecycle
     onMounted(() => {
-      requestGetStudents();
+      requestGetPrograms();
+      requestGetStudentTypes();
     });
 
     return {
       acceptModal,
       filter,
       getStatusBadge,
-      hiddeModal,
+      hideModal,
       isLoadingStudents,
       onNavStudent,
       onOpenModal,
@@ -283,12 +327,14 @@ export default {
       students,
       studentStatuses,
       studentTypes,
-      deprecatedStudentYears,
-      studentCurrentYear,
+      programLevels,
+      studentProgramId,
       isDownloadingStudentsPersonalData,
       onDownloadReport,
       params,
       onChangePage,
+      programs,
+      programLevelId,
     };
   },
 };

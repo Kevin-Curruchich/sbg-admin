@@ -1,13 +1,15 @@
 import sbgApi from "@/apis/sbgApi";
 
 //get
-export const requestGetCollections = async ({ commit }) => {
+export const requestGetCollectionsList = async ({ commit }, { params }) => {
   return new Promise((resolve, reject) => {
     commit("setIsLoadingCollections", true);
     sbgApi
-      .get(`/collections`)
+      .get(`/charges/list`, {
+        params,
+      })
       .then((response) => {
-        commit("setCollection", response.data);
+        commit("setCollectionList", response.data);
         commit("setIsLoadingCollections", false);
         resolve(response.data);
       })
@@ -21,9 +23,8 @@ export const requestGetCollections = async ({ commit }) => {
 export const requestGetAssignedCollections = async ({ commit }, params) => {
   return new Promise((resolve, reject) => {
     commit("setIsLoadingAssignedCollections", true);
-    commit("setAssignedCollection", { data: [], total: 0 });
     sbgApi
-      .get(`/collections/students`, { params })
+      .get(`/charges`, { params })
       .then((response) => {
         commit("setAssignedCollection", response.data);
         commit("setIsLoadingAssignedCollections", false);
@@ -43,7 +44,7 @@ export const requestGetCollectionsByStudent = async (
   return new Promise((resolve, reject) => {
     commit("setIsLoadingCollectionsByStudent", true);
     sbgApi
-      .get(`/collections/students/${studentId}/history`, { params })
+      .get(`/charges/student/${studentId}`, { params })
       .then((response) => {
         commit("setCollectionsByStudent", response.data);
         commit("setIsLoadingCollectionsByStudent", false);
@@ -56,22 +57,26 @@ export const requestGetCollectionsByStudent = async (
   });
 };
 
-export const requestGetCollectionsOwedByStudent = async (
+export const requestGetCollectionsOwedByStudent = (
   { commit },
-  studentId
+  { studentId, params }
 ) => {
   return new Promise((resolve, reject) => {
     commit("setIsLoadingCollectionsByStudent", true);
     sbgApi
-      .get(`/collections/students/${studentId}/owed`)
+      .get(`/charges/student/${studentId}`, {
+        params,
+      })
       .then((response) => {
         commit("setCollectionsOwedByStudent", response.data);
-        commit("setIsLoadingCollectionsOwedByStudent", false);
         resolve(response.data);
       })
       .catch((error) => {
         console.log(error);
         reject(error);
+      })
+      .finally(() => {
+        commit("setIsLoadingCollectionsOwedByStudent", false);
       });
   });
 };
@@ -93,11 +98,56 @@ export const requestGetCollectionTypes = async ({ commit }) => {
   });
 };
 
+export const requestGetCollectionApplyToStudent = async (_, studentId) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .get(`/charges/apply/student/${studentId}`)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        reject(error);
+      });
+  });
+};
+
+export const requestGetCollectionStatuses = async ({ commit }) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .get(`/charges/statuses`)
+      .then((response) => {
+        commit("setCollectionStatuses", response.data);
+
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        reject(error);
+      });
+  });
+};
+
+export const requestGetStudentBalance = async ({ commit }, studentId) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .get(`/charges/student/${studentId}/balance`)
+      .then((response) => {
+        commit("setStudentBalance", response.data);
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        reject(error);
+      });
+  });
+};
+
 //post
 export const requestPostCollectionStudent = async (_, params) => {
   return new Promise((resolve, reject) => {
     sbgApi
-      .post(`/collections/student`, params)
+      .post(`/charges/student`, params)
       .then((response) => {
         resolve(response.data);
       })
@@ -125,7 +175,7 @@ export const requestPostCollection = async (_, data) => {
 export const requestPostCollectionStudents = async (_, { data }) => {
   return new Promise((resolve, reject) => {
     sbgApi
-      .post("/collections/students", data)
+      .post("/charges/students", data)
       .then((response) => {
         resolve(response.data);
       })
@@ -153,7 +203,7 @@ export const putCollection = async (_, { id, data }) => {
 export const putCollectionStudent = async (_, { id, data }) => {
   return new Promise((resolve, reject) => {
     sbgApi
-      .put(`/collections/students/${id}`, data)
+      .put(`/charges/${id}/student`, data)
       .then((response) => {
         resolve(response.data);
       })

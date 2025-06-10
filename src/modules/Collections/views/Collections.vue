@@ -45,7 +45,7 @@
             background
             layout="prev, pager, next"
             :total="total"
-            @current-change="onChangePage"
+            :page-size=""
           />
         </div>
         <!-- </div> -->
@@ -55,7 +55,7 @@
 </template>
 
 <script>
-import { onMounted } from "vue";
+import { onMounted, reactive } from "vue";
 import moment from "moment";
 import ArgonButton from "@/components/ArgonButton.vue";
 import { useCollections, useFormatDate } from "@/composables";
@@ -75,7 +75,13 @@ export default {
 
     const { formatDateDMY, formatDateDMYH } = useFormatDate();
 
+    const pagination = reactive({
+      page: 1,
+      take: 10,
+    });
+
     onMounted(() => {});
+
     return {
       collectionsPerPage,
       isLoadingCollections,
@@ -86,6 +92,7 @@ export default {
       formatDateDMY,
       formatDateDMYH,
       getStatusBadge,
+      pagination,
     };
   },
 };

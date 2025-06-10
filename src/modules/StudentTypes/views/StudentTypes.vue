@@ -67,7 +67,7 @@ export default {
 
   setup() {
     //instances
-    const { studentTypes, isLoadingStudentTypes, requestGetSudentTypes } =
+    const { studentTypes, isLoadingStudentTypes, requestGetStudentTypes } =
       useStudents();
 
     //ref
@@ -83,17 +83,17 @@ export default {
     };
 
     const onChangePage = () => {
-      requestGetSudentTypes();
+      requestGetStudentTypes();
     };
 
     const onAcceptModal = () => {
       OnHiddeModal();
-      requestGetSudentTypes();
+      requestGetStudentTypes();
     };
 
     //lifecycle
     onMounted(() => {
-      requestGetSudentTypes();
+      requestGetStudentTypes();
     });
 
     return {

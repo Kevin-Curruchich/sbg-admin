@@ -1,32 +1,60 @@
 <template>
   <div class="container-fluid">
     <div class="row mb-3">
-      <el-card
-        v-if="quarterSelected && collectionsByStudent.length > 0"
-        shadow="never"
-        class="col-md-12"
-      >
-        <span class="me-2 fs-6">Saldo total: </span>
-        <b>
-          {{ `Q.${(totalAmountOwed + 0).toLocaleString("es-GT")}` }}
-        </b>
+      <el-card shadow="never" class="col-md-12">
+        <table class="table table-sm" style="width: 100%">
+          <thead>
+            <tr>
+              <th class="text-center">Total Por Cobrar</th>
+              <th v-if="studentBalance?.studentHasCredit" class="text-center">
+                Saldo a Favor
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-center">
+                <b>{{ studentBalance?.studentAmountOwedFormatted }}</b>
+              </td>
+              <td v-if="studentBalance?.studentHasCredit" class="text-center">
+                <b>{{ studentBalance?.studentCreditFormatted }}</b>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </el-card>
     </div>
     <div class="row mb-3">
-      <div class="col-md-9 col-sm-12">
-        <label class="form-label"> Trimestre </label>
+      <div class="col-md-4">
+        <label class="form-label"> Estado del Cobro </label>
         <div>
           <el-select
-            v-model="quarterSelected"
+            v-model="charge_status_id"
             placeholder="Seleccione trimestre"
+            clearable
           >
+            <el-option key="" value="" label="Todos" />
             <el-option
-              v-for="item in quartersByStudent"
-              :key="item.Quartetly.quartetlyId"
-              :value="item.Quartetly.quartetlyId"
-              :label="item.Quartetly.quartetlyName"
+              v-for="item in collectionStatuses"
+              :key="item.charge_status_id"
+              :value="item.charge_status_id"
+              :label="item.name"
             />
           </el-select>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label"> Fecha </label>
+        <div>
+          <el-date-picker
+            v-model="due_date"
+            type="month"
+            placeholder="Seleccione fecha"
+            format="MM-YYYY"
+            value-format="YYYY-MM"
+            style="width: 100%"
+            clearable
+          />
         </div>
       </div>
       <div class="col-md-1 col-sm-6 d-flex align-items-end">
@@ -45,146 +73,83 @@
       </div>
     </div>
 
-    <el-card v-if="!collectionsByStudent.length > 0" shadow="never" class="row">
-      <span class="fs-6 text">
-        Seleccione un <strong>trimestre</strong> y presione
-        <strong>Filtrar</strong> para ver el historial de cobros y aportes
-      </span>
+    <el-card shadow="never" class="row">
+      <el-table
+        v-loading="isLoadingCollectionsByStudent"
+        :data="collectionsByStudent"
+        style="width: 100%"
+        border
+      >
+        <el-table-column type="expand">
+          <template #default="{ row }">
+            <el-timeline v-if="row.payment_details.length > 0">
+              <el-timeline-item
+                v-for="item in row.payment_details"
+                :key="item.payment_detail_id"
+                :timestamp="item.payment_date_formatted"
+                placement="top"
+              >
+                <div class="border p-2">
+                  Monto Aplicado:
+                  <span class="text-bold text-uppercase mb-0">
+                    {{ item?.applied_amount_formatted }}
+                  </span>
+                  <br />
+                  Pago:
+                  <a
+                    class="text-sm text-primary cursor-pointer"
+                    @click="onNavigateToPayment(item.payments.payment_id)"
+                  >
+                    {{ item.payments.payment_id }}
+                  </a>
+                </div>
+              </el-timeline-item>
+            </el-timeline>
+          </template>
+        </el-table-column>
+        <el-table-column label="Cobro" min-width="200">
+          <template #default="{ row }">
+            <p class="text-bold text-uppercase mb-0">
+              {{ row.charge_types.name }}
+            </p>
+            <span v-if="row.description" class="text-sm mt-3">
+              {{ row.description }}
+            </span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Fecha" max-width="80">
+          <template #default="{ row }">
+            <span>{{ row.due_date_formatted }}</span>
+          </template>
+        </el-table-column>
+        <el-table-column label="Estado">
+          <template #default="{ row }">
+            <span>{{ row.charge_statuses.name }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Cobro">
+          <template #default="{ row }">
+            <span>{{ row.current_amount_formatted }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Total Pagado">
+          <template #default="{ row }">
+            <span>{{ row.totalAmountPaidFormatted }}</span>
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Saldo">
+          <template #default="{ row }">
+            <span>{{ row.totalAmountDueFormatted }}</span>
+          </template>
+        </el-table-column>
+      </el-table>
     </el-card>
 
     <div class="row" else>
-      <div class="col-sm-12">
-        <el-collapse
-          id="collapse-student-collection-history"
-          v-loading="isLoadingCollectionsByStudent"
-        >
-          <el-collapse-item
-            v-for="{
-              collectionStudentId,
-              collection,
-              Payment,
-              Quartetly,
-              collectionStudentAmountOwed,
-              collectionStudentAmountPaid,
-              collectionStudentDate,
-              collectionDescription,
-            } in collectionsByStudent"
-            :key="collectionStudentId"
-          >
-            <template #title>
-              <div class="d-flex flex-wrap">
-                <span class="me-2 fs-6">
-                  {{ collection.collectionName }} |
-                  {{ formatDateDm(collectionStudentDate) }} |
-                  {{ Quartetly.quartetlyName }}
-                </span>
-
-                <el-tag
-                  v-if="userIsAdmin && collectionStudentAmountOwed > 0"
-                  type="danger"
-                  class="me-2 mt-2"
-                >
-                  Saldo
-                </el-tag>
-              </div>
-            </template>
-
-            <el-card shadow="never" class="mt-2 mb-4">
-              <table class="text-center">
-                <tr>
-                  <td>
-                    <span class="mx-4 fs-6">Cobro</span>
-                  </td>
-                  <td>
-                    <span class="mx-4 fs-6">Abonado</span>
-                  </td>
-                  <td>
-                    <span class="mx-4 fs-6">Saldo</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <span class="me-2 fs-6">
-                      <b>
-                        {{
-                          `Q.${(
-                            collectionStudentAmountOwed +
-                            collectionStudentAmountPaid
-                          ).toLocaleString("es-GT")}`
-                        }}
-                      </b>
-                    </span>
-                  </td>
-
-                  <td>
-                    <el-tag type="success" class="me-2"
-                      >{{
-                        `Q.${collectionStudentAmountPaid.toLocaleString(
-                          "es-GT"
-                        )}`
-                      }}
-                    </el-tag>
-                  </td>
-                  <td>
-                    <el-tag type="danger" class="me-2"
-                      >{{
-                        `Q.${collectionStudentAmountOwed.toLocaleString(
-                          "es-GT"
-                        )}`
-                      }}
-                    </el-tag>
-                  </td>
-                </tr>
-              </table>
-              <span><b>Descripción:</b> {{ collectionDescription }}</span>
-              <br />
-              <span
-                ><b>Fecha:</b> {{ formatDateDMY(collectionStudentDate) }}</span
-              >
-            </el-card>
-
-            <el-card v-if="Payment.length === 0" shadow="never">
-              <span class="fs-6 text">No hay aportes registrados</span>
-            </el-card>
-
-            <div v-else>
-              <el-timeline>
-                <el-timeline-item
-                  v-for="payment in Payment"
-                  :key="payment.paymentId"
-                  :timestamp="formatDateDMY(payment.paymentDate)"
-                  placement="top"
-                  type="primary"
-                >
-                  <el-card shadow="never">
-                    <span class="me-1">ID: </span>
-                    <a
-                      href="#"
-                      class="text-primary"
-                      @click="onNavigateToPayment(payment.paymentId)"
-                      >{{ collectionId(payment.paymentId) }}
-                    </a>
-                    <br />
-                    <span
-                      >Aporte:
-                      <b>
-                        {{
-                          `Q.${payment.paymentAmount.toLocaleString("es-GT")}`
-                        }}
-                      </b>
-                    </span>
-                    <br />
-                    <span class="me-1 mt-3"
-                      >Descripción:
-                      {{ payment.paymentDescription }}
-                    </span>
-                  </el-card>
-                </el-timeline-item>
-              </el-timeline>
-            </div>
-          </el-collapse-item>
-        </el-collapse>
-      </div>
+      <div class="col-sm-12"></div>
     </div>
   </div>
 </template>
@@ -196,7 +161,6 @@ import {
   useCollections,
   useFormatDate,
   usePayments,
-  useQuarters,
   useReports,
   useStudent,
   useAuth,
@@ -214,10 +178,13 @@ export default {
       collectionsByStudent,
       isLoadingCollectionsByStudent,
       collectionId,
-      setCollectionsByStudent,
+      requestGetCollectionStatuses,
+      requestGetStudentBalance,
+      collectionStatuses,
+      studentBalance,
     } = useCollections();
     const { formatDateDMY, formatDateDm } = useFormatDate();
-    const { requestGetQuartresByStudent, quartersByStudent } = useQuarters();
+
     const {
       requestDownloadCollectionHistoryByStudent,
       isDownlodReportByStudent,
@@ -225,25 +192,18 @@ export default {
     const { student } = useStudent();
 
     //ref
-    const quarterSelected = ref("");
-
-    //computed
-    const totalAmountOwed = computed(() => {
-      return collectionsByStudent.value.reduce(
-        (acc, { collectionStudentAmountOwed }) => {
-          return acc + collectionStudentAmountOwed;
-        },
-        0
-      );
-    });
+    const charge_status_id = ref("");
+    const due_date = ref("");
 
     const params = computed(() => {
       return {
-        quartetlyId: quarterSelected.value,
+        charge_status_id: charge_status_id.value || null,
+        due_date: due_date.value || null,
       };
     });
 
     //methods
+
     const onDownloadReport = () => {
       requestDownloadCollectionHistoryByStudent(id, params.value).then(
         (response) => {
@@ -261,13 +221,15 @@ export default {
     };
 
     const onFilterHistory = () => {
+      requestGetStudentBalance(id);
       requestGetCollectionsByStudent(id, params.value);
     };
 
     //lifecycle
     onMounted(() => {
-      setCollectionsByStudent([]);
-      requestGetQuartresByStudent(id);
+      requestGetCollectionStatuses();
+      requestGetStudentBalance(id);
+      onFilterHistory();
     });
 
     return {
@@ -279,11 +241,12 @@ export default {
       onDownloadReport,
       onFilterHistory,
       onNavigateToPayment,
-      quartersByStudent,
-      quarterSelected,
+      collectionStatuses,
+      charge_status_id,
       userIsAdmin,
       formatDateDm,
-      totalAmountOwed,
+      studentBalance,
+      due_date,
     };
   },
 };

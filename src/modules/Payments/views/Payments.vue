@@ -11,13 +11,27 @@
             </div>
             <div class="my-auto mt-4 ms-auto mt-lg-0">
               <div class="my-auto ms-auto">
-                <argon-button
-                  color="primary"
-                  size="lg"
-                  @click="showModal = true"
-                >
-                  Registrar
-                </argon-button>
+                <div class="d-flex gap-2">
+                  <argon-button
+                    color="secondary"
+                    variant="outline"
+                    size="lg"
+                    :disabled="isLoadingPayments"
+                    @click="showModalDonations = true"
+                  >
+                    Donaciones
+                    <i class="fas fa-donate mx-1"></i>
+                  </argon-button>
+                  <argon-button
+                    color="primary"
+                    size="lg"
+                    :disabled="isLoadingPayments"
+                    @click="showModal = true"
+                  >
+                    Aporte Estudiante
+                    <i class="fas fa-plus mx-1"></i>
+                  </argon-button>
+                </div>
               </div>
             </div>
           </div>
@@ -33,24 +47,29 @@
                 />
               </div>
             </div>
+
             <div class="col-md-5">
-              <label class="form-label"> Año </label>
+              <label class="form-label"> Mes </label>
               <div>
-                <el-select v-model="studentCurrentYear">
-                  <el-option label="Todos" value=""></el-option>
-                  <el-option
-                    v-for="item in studentYears"
-                    :key="item.year"
-                    :value="item.year"
-                    :label="item.label"
-                  />
-                </el-select>
+                <el-date-picker
+                  v-model="payment_date"
+                  type="daterange"
+                  format="DD/MM/YYYY"
+                  value-format="YYYY-MM-DD"
+                  placeholder="Mes"
+                  :clearable="true"
+                  class="w-100"
+                  start-placeholder="Desde"
+                  end-placeholder="Hasta"
+                  range-separator="a"
+                />
               </div>
             </div>
+
             <div class="col-md-2">
               <div class="h-100 d-flex align-items-end justify-content-end">
-                <argon-button @click="filter"
-                  >Filtrar
+                <argon-button :disabled="isLoadingPayments" @click="onFilter">
+                  Filtrar
                   <i class="fas fa-filter"></i>
                 </argon-button>
               </div>
@@ -65,51 +84,51 @@
             border
             size="default"
           >
-            <el-table-column label="Estudiante" min-width="180px">
-              <template #default="{ row }">
-                {{ row.studentFullName }}
-              </template>
-            </el-table-column>
-            <el-table-column label="ID Pago">
+            <el-table-column label="ID" min-width="100px">
               <template #default="{ row }">
                 <a
                   href="#"
                   class="text-primary"
-                  @click="onNavigateToPayment(row?.paymentId)"
-                  >{{ getPaymentsId(row?.paymentId) }}</a
-                >
+                  @click="onNavigateToPayment(row?.payment_id)"
+                  >{{ row.public_payment_id }}
+                </a>
               </template>
             </el-table-column>
-            <el-table-column label="Cobro" min-width="180px">
+
+            <el-table-column label="Estudiante" min-width="180px">
               <template #default="{ row }">
-                {{ row?.collectionStudent?.collection.collectionName }}
+                {{ row.students?.first_name }} {{ row.students?.last_name }}
               </template>
             </el-table-column>
-            <el-table-column label="Trimestre" min-width="180px">
+
+            <el-table-column label="Cobro Abonado" min-width="180px">
               <template #default="{ row }">
-                {{ row?.collectionStudent?.Quartetly.quartetlyName }}
+                <ul>
+                  <li
+                    v-for="item in row?.payment_details"
+                    :key="item.collection_id"
+                  >
+                    {{ item?.charges.charge_types.name }}:
+                    {{ item?.applied_amount }}
+                  </li>
+                </ul>
               </template>
             </el-table-column>
-            <el-table-column label="Monto de aporte" min-width="150px">
+            <el-table-column label="Fecha " width="120px">
               <template #default="{ row }">
-                {{ `${row?.paymentAmount ? `Q. ${row.paymentAmount}` : ""}` }}
-              </template>
-            </el-table-column>
-            <el-table-column label="Fecha " min-width="150px">
-              <template #default="{ row }">
-                {{
-                  `${row?.paymentDate ? formatDateDMY(row?.paymentDate) : ""}`
-                }}
+                {{ row?.payment_date }}
               </template>
             </el-table-column>
           </el-table>
         </div>
         <div class="mt-4 d-flex justify-content-end">
           <el-pagination
+            v-model:current-page="pagination.page"
+            :disabled="isLoadingPayments"
             background
             layout="prev, pager, next"
-            :total="10"
-            @current-change="onChangePage"
+            :total="payments.total"
+            :page-size="pagination.take"
           />
         </div>
         <!-- </div> -->
@@ -121,19 +140,25 @@
     @hidde-modal="onCloseModal"
     @accept-modal="onAcceptModal"
   />
+  <AddDonationToStudents
+    :show-modal="showModalDonations"
+    @hidde-modal="onCloseModal"
+    @accept-modal="onAcceptModal"
+  />
 </template>
 
 <script>
-import { onMounted, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { usePayments, useFormatDate, useStudents } from "@/composables";
 import ArgonButton from "@/components/ArgonButton.vue";
 import AddEditPayment from "../components/AddEditPayment.vue";
+import AddDonationToStudents from "../components/AddDonationToStudents.vue";
 
 export default {
   name: "Payments",
-  components: { ArgonButton, AddEditPayment },
+  components: { ArgonButton, AddEditPayment, AddDonationToStudents },
   setup() {
-    //instnaces
+    //instances
     const {
       isLoadingPayments,
       requestGetPayments,
@@ -142,55 +167,62 @@ export default {
       onNavigateToPayment,
     } = usePayments();
     const { formatDateDMY, formatDateDMYH } = useFormatDate();
-    const { studentYears } = useStudents();
+    const { programLevels } = useStudents();
 
     //refs
     const showModal = ref(false);
+    const showModalDonations = ref(false);
+    const pagination = reactive({
+      page: 1,
+      take: 10,
+    });
     const search = ref("");
-    const studentCurrentYear = ref("");
+    const payment_date = ref("");
+
+    //computed
+    const queryParams = computed(() => ({
+      page: pagination.page,
+      take: pagination.take,
+      searchQuery: search.value || null,
+      payment_date_start: (payment_date.value && payment_date.value[0]) || null,
+      payment_date_end: (payment_date.value && payment_date.value[1]) || null,
+    }));
 
     //methods
-    const filter = async () => {
-      const params = {
-        page: 1,
-        take: 10,
-        searchQuery: search.value,
-        currentYear: studentCurrentYear.value,
-      };
-
-      await requestGetPayments(params);
+    const onFilter = async () => {
+      await requestGetPayments(queryParams.value);
     };
 
     const onChangePage = async (page) => {
-      await requestGetPayments({
-        page,
-        take: 10,
-        searchQuery: search.value,
-        currentYear: studentCurrentYear.value,
-      });
+      pagination.page = page;
+      await requestGetPayments(queryParams.value);
     };
 
     const onCloseModal = () => {
       showModal.value = false;
+      showModalDonations.value = false;
     };
 
     const onAcceptModal = () => {
       showModal.value = false;
+      showModalDonations.value = false;
       requestGetPayments();
     };
 
+    watch(
+      () => pagination.page,
+      (newPage) => {
+        pagination.page = newPage;
+        requestGetPayments(queryParams.value);
+      }
+    );
+
     onMounted(() => {
-      const params = {
-        page: 1,
-        take: 10,
-        searchQuery: search.value,
-        currentYear: studentCurrentYear.value,
-      };
-      requestGetPayments(params);
+      requestGetPayments(queryParams.value);
     });
 
     return {
-      filter,
+      onFilter,
       formatDateDMY,
       formatDateDMYH,
       getPaymentsId,
@@ -202,8 +234,10 @@ export default {
       payments,
       search,
       showModal,
-      studentCurrentYear,
-      studentYears,
+      showModalDonations,
+      payment_date,
+      programLevels,
+      pagination,
     };
   },
 };

@@ -3,9 +3,12 @@ import sbgApi from "@/apis/sbgApi";
 export const signInUser = async ({ commit }, user) => {
   return new Promise((resolve, reject) => {
     sbgApi
-      .post("/login", user)
+      .post("/auth/login", user)
       .then((response) => {
         commit("loginUser", response.data);
+
+        console.log({ response });
+
         resolve({ ok: true });
       })
       .catch((error) => {

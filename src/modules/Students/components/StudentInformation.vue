@@ -5,11 +5,10 @@
         <div>
           <h5 class="mb-0">Información</h5>
         </div>
-        <div v-if="userIsAdmin">
-          <argon-button color="primary" @click="onEditMode">{{
-            `${editMode ? "Cancelar" : "Editar"}`
-          }}</argon-button>
-        </div>
+
+        <argon-button color="primary" @click="onEditMode">
+          {{ `${editMode ? "Cancelar" : "Editar"}` }}
+        </argon-button>
       </div>
     </template>
     <el-form
@@ -21,9 +20,9 @@
     >
       <div class="row">
         <div class="col-md-6">
-          <el-form-item label="Nombre" prop="studentName">
+          <el-form-item label="Nombre" prop="first_name">
             <el-input
-              v-model="formModel.studentName"
+              v-model="formModel.first_name"
               type="text"
               placeholder="Nombre"
               :disabled="!editMode"
@@ -31,9 +30,9 @@
           </el-form-item>
         </div>
         <div class="col-md-6">
-          <el-form-item label="Apellido" prop="studentLastName">
+          <el-form-item label="Apellido" prop="last_name">
             <el-input
-              v-model="formModel.studentLastName"
+              v-model="formModel.last_name"
               type="text"
               placeholder="Apellido"
               :disabled="!editMode"
@@ -41,9 +40,9 @@
           </el-form-item>
         </div>
         <div class="col-md-6">
-          <el-form-item label="DPI/DNI" prop="studentDni">
+          <el-form-item label="DPI/DNI" prop="document_id">
             <el-input
-              v-model="formModel.studentDni"
+              v-model="formModel.document_id"
               type="text"
               placeholder="DPI/DNI"
               :disabled="!editMode"
@@ -57,13 +56,31 @@
               type="text"
               placeholder="Telefono"
               :disabled="!editMode"
-            />
+            >
+              <template #prepend>
+                <el-select
+                  v-model="formModel.studentPhoneCode"
+                  placeholder="Código"
+                  style="width: 100px"
+                  filterable
+                  clearable
+                  width="100%"
+                >
+                  <el-option
+                    v-for="item in countries"
+                    :key="item.code"
+                    :value="item.dial_code"
+                    :label="item.dial_code"
+                  />
+                </el-select>
+              </template>
+            </el-input>
           </el-form-item>
         </div>
         <div class="col-md-6">
-          <el-form-item label="Correo" prop="studentEmail">
+          <el-form-item label="Correo" prop="email">
             <el-input
-              v-model="formModel.studentEmail"
+              v-model="formModel.email"
               type="text"
               placeholder="Correo"
               :disabled="!editMode"
@@ -71,9 +88,9 @@
           </el-form-item>
         </div>
         <div class="col-md-6">
-          <el-form-item label="Fecha de nacimiento" prop="studentBirthDate">
+          <el-form-item label="Fecha de nacimiento" prop="birthday">
             <el-date-picker
-              v-model="formModel.studentBirthDate"
+              v-model="formModel.birthday"
               placeholder="Fecha de nacimiento"
               format="DD/MM/YYYY"
               style="width: 100%"
@@ -82,9 +99,9 @@
           </el-form-item>
         </div>
         <div class="col-md-12">
-          <el-form-item label="Lugar de nacimiento" prop="studentAddress">
+          <el-form-item label="Lugar de nacimiento" prop="address">
             <el-input
-              v-model="formModel.studentAddress"
+              v-model="formModel.address"
               type="text"
               placeholder="Lugar de nacimiento"
               :disabled="!editMode"
@@ -99,40 +116,8 @@
               placeholder="Fecha ingreso"
               format="DD/MM/YYYY"
               style="width: 100%"
-              :disabled="!editMode"
+              disabled
             />
-          </el-form-item>
-        </div>
-        <div class="col-md-6">
-          <el-form-item label="Tipo estudiante" prop="studentTypeId">
-            <el-select
-              v-model="formModel.studentTypeId"
-              placeholder="Tipo estudiante"
-              :disabled="!editMode"
-            >
-              <el-option
-                v-for="item in studentTypes"
-                :key="item.studentTypeId"
-                :value="item.studentTypeId"
-                :label="item.studentTypeName"
-              />
-            </el-select>
-          </el-form-item>
-        </div>
-        <div class="col-md-6">
-          <el-form-item label="Año" prop="studentCurrentYearId">
-            <el-select
-              v-model="formModel.studentCurrentYearId"
-              placeholder="Año estudiante"
-              :disabled="!editMode"
-            >
-              <el-option
-                v-for="item in studentYears"
-                :key="item.studentYearId"
-                :value="item.studentYearId"
-                :label="item.studentYearName"
-              />
-            </el-select>
           </el-form-item>
         </div>
       </div>
@@ -153,10 +138,12 @@
 </template>
 
 <script>
-import { onMounted, ref } from "vue";
-import { useStudents, useStudent, useAuth } from "@/composables";
+import { onMounted, reactive, ref } from "vue";
+import { useStudents, useStudent } from "@/composables";
 import { ArgonButton } from "@/components";
 import errorMessages from "@/constants/formErrorMessages";
+import countries from "@/constants/countries";
+
 import { ElMessage } from "element-plus";
 
 export default {
@@ -172,16 +159,15 @@ export default {
   setup(props) {
     //instances
     const {
-      requestGetSudentTypes,
+      requestGetStudentTypes,
       studentTypes,
-      studentYears,
+      programLevels,
       requestPutStudent,
     } = useStudents();
 
     const { student, requestGetStudentById } = useStudent();
-    const { userIsAdmin } = useAuth();
 
-    const requiredMesage = errorMessages.required;
+    const requiredMessage = errorMessages.required;
     const inValidEmailMessage = errorMessages.inValidEmail;
 
     //refs
@@ -189,33 +175,28 @@ export default {
     const editMode = ref(false);
     const sendingRequest = ref(false);
     const formRef = ref(null);
-    const formModel = ref({
-      studentName: "",
-      studentLastName: "",
-      studentDni: "",
+    const formModel = reactive({
+      first_name: "",
+      last_name: "",
+      document_id: "",
       studentPhone: "",
-      studentEmail: "",
-      studentBirthDate: "",
-      studentAddress: "",
+      studentPhoneCode: "",
+      email: "",
+      birthday: "",
+      address: "",
       studentStartDate: "",
-      studentTypeId: "",
-      studentCurrentYearId: "",
     });
 
     const rules = ref({
-      studentName: [{ required: true, message: requiredMesage }],
-      studentLastName: [{ required: true, message: requiredMesage }],
-      studentDni: [{ required: true, message: requiredMesage }],
-      studentPhone: [{ required: true, message: requiredMesage }],
-      studentEmail: [
-        { required: true, message: requiredMesage },
+      first_name: [{ required: true, message: requiredMessage }],
+      last_name: [{ required: true, message: requiredMessage }],
+      document_id: [{ required: true, message: requiredMessage }],
+      studentPhone: [{ required: true, message: requiredMessage }],
+      email: [
+        { required: true, message: requiredMessage },
         { type: "email", message: inValidEmailMessage },
       ],
-      studentStartDate: [{ required: true, message: requiredMesage }],
-      studentTypeId: [
-        { required: true, message: requiredMesage, trigger: "change" },
-      ],
-      studentCurrentYearId: [{ required: true, message: requiredMesage }],
+      studentStartDate: [{ required: true, message: requiredMessage }],
     });
 
     //methods
@@ -234,43 +215,58 @@ export default {
 
     const onSetInitialData = () => {
       settingData.value = true;
-      formModel.value = {
-        ...student.value,
-      };
+      formModel.first_name = student.value.first_name;
+      formModel.last_name = student.value.last_name;
+      formModel.document_id = student.value.document_id;
+      formModel.email = student.value.email;
+      formModel.birthday = student.value.birthday;
+      formModel.address = student.value.address;
+
+      formModel.studentStartDate = student.value.created_at;
+
+      const phoneParts = student.value.phone_number.split(" ");
+      formModel.studentPhoneCode = phoneParts[0] || "";
+      formModel.studentPhone = phoneParts.slice(1).join(" ") || "";
+
       settingData.value = false;
     };
 
     const onSubmit = async () => {
       await formRef.value.validate((isValid) => {
-        if (isValid) {
-          sendingRequest.value = true;
-          const studentId = student.value.studentId;
+        if (!isValid) return;
+        sendingRequest.value = true;
+        const studentId = props.studentId;
 
-          const data = { ...formModel.value };
-          delete data.studentId;
-          delete data.StudentStatus;
-          delete data.StudentType;
-          delete data.studentCurrentYear;
+        // Create a new object with only the properties we want to send
+        const data = {
+          first_name: formModel.first_name,
+          last_name: formModel.last_name,
+          document_id: formModel.document_id,
+          email: formModel.email,
+          birthday: formModel.birthday,
+          address: formModel.address,
 
-          requestPutStudent({ studentId, data })
-            .then(async () => {
-              await requestGetStudentById(props.studentId);
-              sendingRequest.value = false;
-              editMode.value = false;
-              ElMessage.success("Estudiante actualizado correctamente");
-            })
-            .catch(() => {
-              sendingRequest.value = false;
-              ElMessage.error("Error al actualizar estudiante");
-              onEditMode();
-            });
-        }
+          phone_number: `${formModel.studentPhoneCode} ${formModel.studentPhone}`,
+        };
+
+        requestPutStudent({ studentId, data })
+          .then(async () => {
+            await requestGetStudentById(props.studentId);
+            sendingRequest.value = false;
+            editMode.value = false;
+            ElMessage.success("Estudiante actualizado correctamente");
+          })
+          .catch(() => {
+            sendingRequest.value = false;
+            ElMessage.error("Error al actualizar estudiante");
+            onEditMode();
+          });
       });
     };
 
     //lifecycle
     onMounted(async () => {
-      await requestGetSudentTypes();
+      await requestGetStudentTypes();
       onSetInitialData();
     });
 
@@ -281,11 +277,12 @@ export default {
       rules,
       sendingRequest,
       studentTypes,
-      studentYears,
+      programLevels,
       editMode,
       onEditMode,
       settingData,
-      userIsAdmin,
+
+      countries,
     };
   },
 };

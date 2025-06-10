@@ -91,7 +91,7 @@ export default {
   components: { ArgonButton, AddEditCollection },
   setup() {
     ArgonButton; //instances
-    const { isLoadingCollections, collections, requestGetCollections } =
+    const { isLoadingCollections, collections, requestGetCollectionsList } =
       useCollections();
     const { getStudentTypeName } = useStudents();
 
@@ -112,12 +112,12 @@ export default {
     const onAcceptModal = () => {
       showModal.value = false;
       rowSelected.value = null;
-      requestGetCollections();
+      requestGetCollectionsList();
     };
 
     //lifecycle
     onMounted(() => {
-      requestGetCollections();
+      requestGetCollectionsList();
     });
 
     //returns

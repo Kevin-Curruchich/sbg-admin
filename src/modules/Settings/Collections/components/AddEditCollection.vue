@@ -107,7 +107,7 @@ export default {
   setup(props, { emit }) {
     const requiredMesage = errorMessages.required;
     //instances
-    const { studentTypes, requestGetSudentTypes } = useStudents();
+    const { studentTypes, requestGetStudentTypes } = useStudents();
     const {
       collectionTypes,
       requestGetCollectionTypes,
@@ -207,7 +207,7 @@ export default {
     //lifecycle
     onMounted(() => {
       requestGetCollectionTypes();
-      requestGetSudentTypes();
+      requestGetStudentTypes();
     });
 
     return {

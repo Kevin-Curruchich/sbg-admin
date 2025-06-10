@@ -13,7 +13,8 @@
           :onclick="onPrintInvoice"
           type="button"
           name="button"
-          >Imprimir
+        >
+          Imprimir
           <i class="fas fa-print mx-2"></i>
         </argon-button>
       </div>
@@ -27,7 +28,8 @@
           type="button"
           name="button"
           :loading="sendEmail"
-          >Enviar correo
+        >
+          Enviar correo
           <i class="fas fa-envelope mx-2"></i>
         </argon-button>
       </div>
@@ -87,7 +89,7 @@
               {{ formatDateDMY(paymentById?.paymentDate) }}
             </p>
             <p style="margin: 5px 0">
-              <b>Correlativo:</b> {{ paymentById?.paymentId }}
+              <b>Correlativo:</b> {{ paymentById?.public_payment_id }}
             </p>
           </div>
           <div
@@ -97,64 +99,41 @@
               font-family: Arial, Helvetica, sans-serif;
             "
           >
-            <p style="margin: 0; font-weight: bold">Estudiante:</p>
-            <p style="margin: 5px 0">
-              {{ paymentById?.student?.studentFullName }}
+            <p style="margin: 0; font-weight: bold">
+              Estudiante:
+
+              <span class="text-uppercase">
+                {{ paymentById?.students?.first_name }}
+                {{ paymentById?.students?.last_name }}
+              </span>
             </p>
           </div>
-          <table
-            class="invoice-table"
-            style="
-              width: 100%;
-              margin-top: 20px;
-              border-collapse: collapse;
-              background-color: #f9f9f9;
-              font-family: Arial, Helvetica, sans-serif;
-            "
+          <el-table
+            :data="paymentById?.payment_details"
+            style="width: 100%"
+            border
           >
-            <tr>
-              <th
-                style="border: 1px solid #ddd; padding: 10px; text-align: left"
-              >
-                Concepto
-              </th>
-
-              <th
-                style="border: 1px solid #ddd; padding: 10px; text-align: left"
-              >
-                Monto
-              </th>
-            </tr>
-
-            <tr
-              v-for="item in [paymentById]"
-              :key="item?.collectionStudent?.collection.collectionId"
+            <el-table-column label="Cobro">
+              <template #default="{ row }">
+                <p class="text-bold text-uppercase mb-0">
+                  {{ row.charges.charge_types.name }}
+                </p>
+                <span v-if="row.description" class="text-sm mt-3">
+                  {{ row.description }}
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column
+              label="Monto"
+              min-width="80"
+              align="center"
             >
-              <td
-                style="border: 1px solid #ddd; padding: 10px; text-align: left"
-              >
-                <b>
-                  {{ item?.collectionStudent?.collection.collectionName }}
-                </b>
-                <br />
-                <small style="font-variant: small-caps">{{
-                  item?.paymentDescription
-                }}</small>
-              </td>
+              <template #default="{ row }">
+                <span>{{ row.applied_amount }}</span>
+              </template>
+            </el-table-column>
 
-              <td
-                style="border: 1px solid #ddd; padding: 10px; text-align: left"
-              >
-                {{ `Q. ${item?.paymentAmount?.toLocaleString("es-GT")}` }}
-              </td>
-            </tr>
-          </table>
-          <!-- <div
-            class="total"
-            style="text-align: right; margin-top: 20px; font-weight: bold"
-          >
-            <p style="margin: 0; font-size: large">Total: $190.00</p>
-          </div> -->
+          </el-table>
         </div>
       </div>
     </div>
@@ -189,11 +168,12 @@ export default {
 
     //ref
     const sendEmail = ref(false);
+    const id = route.params.id;
 
     //methods
     const onSendEmail = async () => {
       sendEmail.value = true;
-      const id = route.params.id;
+
       await requestPostInvoiceMail(id);
       sendEmail.value = false;
 
@@ -233,7 +213,6 @@ export default {
 
     //lifecycle
     onMounted(() => {
-      const id = route.params.id;
       requestGetPaymentById(id);
     });
 

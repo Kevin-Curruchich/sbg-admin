@@ -1,5 +1,5 @@
 export default () => ({
-  collections: [],
+  collectionsList: [],
   isLoadingCollection: false,
   assignedCollections: [],
   isLoadingAssignedCollections: false,
@@ -9,4 +9,6 @@ export default () => ({
   isLoadingCollectionsOwedByStudent: true,
   collectionsByStudent: [],
   isLoadingCollectionsByStudent: false,
+  collectionStatuses: [],
+  studentBalance: {},
 });

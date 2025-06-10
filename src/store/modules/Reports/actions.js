@@ -83,7 +83,7 @@ export const requestDownloadPaymentsReport = async ({ commit }, { params }) => {
   return new Promise((resolve, reject) => {
     commit("setIsDownloadingPaymentsReport", true);
     sbgApi
-      .get(`/reports/payments/export`, { params, responseType: "blob" })
+      .get(`/reports/payments`, { params, responseType: "blob" })
       .then((response) => {
         commit("setIsDownloadingPaymentsReport", false);
         resolve(response);

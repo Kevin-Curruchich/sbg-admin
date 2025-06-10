@@ -24,11 +24,11 @@
           <div class="numbers">
             <p
               class="mb-0 text-sm text-uppercase font-weight-bold"
-              :class="title.color"
+              :class="title?.color"
             >
               {{ typeof title === "string" ? title : title.text }}
             </p>
-            <h5 :class="`mb-0 font-weight-bolder ${value.color}`">
+            <h5 :class="`mb-0 font-weight-bolder ${value?.color}`">
               {{
                 (value && typeof value === "string") ||
                 (value && typeof value === "number")
@@ -43,7 +43,7 @@
               </span>
               <span
                 v-if="percentage && typeof percentage === 'object'"
-                :class="`text-sm font-weight-bolder text-${percentage.color}`"
+                :class="`text-sm font-weight-bolder text-${percentage?.color}`"
               >
                 {{ percentage.value }}
               </span>

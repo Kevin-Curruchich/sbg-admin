@@ -11,41 +11,41 @@
       >
         <div class="row">
           <div class="col-md-6">
-            <el-form-item label="Estudiante" prop="studentId">
+            <el-form-item label="Estudiante" prop="student_id">
               <el-select
-                v-model="formModel.studentId"
+                v-model="formModel.student_id"
                 placeholder="Estudiante"
                 filterable
               >
                 <el-option
-                  v-for="student in studentsList.data"
-                  :key="student.studentId"
-                  :value="student.studentId"
-                  :label="student.studentFullName"
+                  v-for="student in studentsList"
+                  :key="student.student_id"
+                  :value="student.student_id"
+                  :label="student.first_name + ' ' + student.last_name"
                 />
               </el-select>
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Cobro" prop="collectionId">
+            <el-form-item label="Cobro" prop="charge_type_id">
               <el-select
-                v-model="formModel.collectionId"
+                v-model="formModel.charge_type_id"
                 placeholder="Cobro"
                 filterable
               >
                 <el-option
                   v-for="collection in collectionsToStudent"
-                  :key="collection.collectionId"
-                  :value="collection.collectionId"
-                  :label="collection.collectionName"
+                  :key="collection.charge_type_id"
+                  :value="collection.charge_type_id"
+                  :label="collection.name"
                 />
               </el-select>
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Monto" prop="collectionStudentAmountOwed">
+            <el-form-item label="Monto" prop="original_amount">
               <el-input
-                v-model="formModel.collectionStudentAmountOwed"
+                v-model="formModel.original_amount"
                 type="number"
                 placeholder="Monto "
               />
@@ -53,22 +53,9 @@
           </div>
 
           <div class="col-md-6">
-            <el-form-item label="Trimestre" prop="quartetlyQuartetlyId">
-              <el-select v-model="formModel.quartetlyQuartetlyId">
-                <el-option
-                  v-for="quarter in quartersList"
-                  :key="quarter.quartetlyId"
-                  :value="quarter.quartetlyId"
-                  :label="quarter.quartetlyName"
-                />
-              </el-select>
-            </el-form-item>
-          </div>
-
-          <div class="col-md-6">
-            <el-form-item label="Fecha" prop="collectionStudentDate">
+            <el-form-item label="Fecha" prop="due_date">
               <el-date-picker
-                v-model="formModel.collectionStudentDate"
+                v-model="formModel.due_date"
                 placeholder="Fecha"
                 format="DD/MM/YYYY"
                 style="width: 100%"
@@ -93,7 +80,7 @@
       <argon-button variant="outline" @click="onHideModal"
         >Cancelar</argon-button
       >
-      <argon-button :loading="lockModal" @click="onSubmit"
+      <argon-button :disabled="lockModal" @click="onSubmit"
         >Agregar</argon-button
       >
     </template>
@@ -101,7 +88,7 @@
 </template>
 
 <script>
-import { onMounted, ref, watch } from "vue";
+import { onMounted, reactive, ref, watch } from "vue";
 import {
   useStudents,
   useCollections,
@@ -129,10 +116,10 @@ export default {
     const requiredMesage = errorMessages.required;
     //instances
     const { userIsAcademic } = useAuth();
-    const { requestGetStudentsList, studentsList } = useStudents();
-    const { collections, requestGetCollections, requestPostCollectionStudent } =
+    const { requestGetStudentsList, studentsList, programs } = useStudents();
+    const { requestPostCollectionStudent, requestGetCollectionApplyToStudent } =
       useCollections();
-    const { requestGetQuartresList, quartersList } = useQuarters();
+    const { quartersList } = useQuarters();
 
     const { formatDateYMD } = useFormatDate();
 
@@ -140,23 +127,19 @@ export default {
     const lockModal = ref(false);
     const collectionsToStudent = ref([]);
     const formRef = ref(null);
-    const formModel = ref({
-      studentId: "",
-      collectionId: "",
-      quartetlyQuartetlyId: "",
-      collectionStudentDate: "",
-      collectionStudentAmountOwed: "",
+    const formModel = reactive({
+      student_id: "",
+      charge_type_id: "",
+      due_date: "",
+      original_amount: "",
       collectionDescription: "",
     });
 
     const rules = ref({
-      studentId: [{ required: true, message: requiredMesage }],
-      collectionId: [{ required: true, message: requiredMesage }],
-      collectionStudentAmountOwed: [
-        { required: true, message: requiredMesage },
-      ],
-      collectionStudentDate: [{ required: true, message: requiredMesage }],
-      quartetlyQuartetlyId: [{ required: true, message: requiredMesage }],
+      student_id: [{ required: true, message: requiredMesage }],
+      charge_type_id: [{ required: true, message: requiredMesage }],
+      original_amount: [{ required: true, message: requiredMesage }],
+      due_date: [{ required: true, message: requiredMesage }],
     });
 
     //methods
@@ -173,61 +156,53 @@ export default {
 
     const onSubmit = async () => {
       await formRef.value.validate((isValid) => {
-        if (isValid) {
-          lockModal.value = true;
-          formModel.value.collectionStudentDate = formatDateYMD(
-            formModel.value.collectionStudentDate
-          );
-          formModel.value.collectionStudentAmountOwed =
-            +formModel.value.collectionStudentAmountOwed;
+        if (!isValid) return;
 
-          requestPostCollectionStudent(formModel.value)
-            .then(() => {
-              onClearData();
-              emit("accept-modal");
-            })
-            .catch(() => {
-              lockModal.value = false;
-            });
-        }
+        lockModal.value = true;
+
+        const data = {
+          student_id: formModel.student_id,
+          charge_type_id: formModel.charge_type_id,
+          original_amount: +formModel.original_amount,
+          due_date: formatDateYMD(formModel.due_date),
+          description: formModel.collectionDescription || null,
+        };
+
+        requestPostCollectionStudent(data)
+          .then(() => {
+            onClearData();
+            emit("accept-modal");
+          })
+          .catch(() => {
+            lockModal.value = false;
+          });
       });
     };
 
-    //watchers
+    //watcherss
     watch(
-      () => formModel.value.studentId,
-      (studentId) => {
-        if (studentId) {
-          lockModal.value = true;
-          formModel.value.collectionId = "";
-          const studentData = studentsList.value.data.find(
-            (student) => student.studentId === studentId
-          );
+      () => formModel.student_id,
+      async (studentId) => {
+        if (!studentId) return;
+        lockModal.value = true;
 
-          formModel.value.collectionStudentAmountOwed = "";
+        const collections = await requestGetCollectionApplyToStudent(studentId);
+        formModel.charge_type_id = "";
 
-          collectionsToStudent.value = collections.value.filter((collection) =>
-            collection.collectionStudentApply.find(
-              (applyStudent) =>
-                applyStudent.studentTypeId === studentData.studentTypeId
-            )
-          );
+        collectionsToStudent.value = collections;
 
-          lockModal.value = false;
-        }
+        lockModal.value = false;
       }
     );
 
     watch(
-      () => formModel.value.collectionId,
-      (collecitonId) => {
-        if (collecitonId) {
-          const collectionData = collectionsToStudent.value.find(
-            (collection) => collection.collectionId === collecitonId
-          );
-
-          formModel.value.collectionStudentAmountOwed =
-            collectionData.collectionBaseAmount;
+      () => formModel.charge_type_id,
+      (collectionId) => {
+        if (collectionId) {
+          formModel.original_amount =
+            collectionsToStudent.value.find(
+              (collection) => collection.charge_type_id === collectionId
+            ).default_amount || 0;
         }
       }
     );
@@ -235,8 +210,6 @@ export default {
     //lifecycle
     onMounted(() => {
       requestGetStudentsList();
-      requestGetCollections();
-      requestGetQuartresList();
     });
 
     return {
@@ -251,9 +224,9 @@ export default {
       quartersList,
       userIsAcademic,
       collectionsAcademic,
+      programs,
     };
   },
 };
 </script>
-
 <style></style>

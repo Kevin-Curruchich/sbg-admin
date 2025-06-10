@@ -5,8 +5,8 @@ export default function useCollection() {
   const store = useStore();
 
   //   computed
-  const collections = computed(
-    () => store.getters["collections/getCollections"]
+  const collectionsList = computed(
+    () => store.getters["collections/getCollectionsList"]
   );
   const isLoadingCollections = computed(
     () => store.getters["collections/getIsLoadingCollections"]
@@ -41,20 +41,26 @@ export default function useCollection() {
 
   //methods
   //gets
-  const requestGetCollections = async () => {
-    await store.dispatch("collections/requestGetCollections");
+  const requestGetCollectionsList = async ({ params } = {}) => {
+    await store.dispatch("collections/requestGetCollectionsList", { params });
   };
 
   const requestGetCollectionTypes = async () => {
     await store.dispatch("collections/requestGetCollectionTypes");
   };
 
+  const requestGetCollectionStatuses = async () => {
+    await store.dispatch("collections/requestGetCollectionStatuses");
+  };
+
+  const collectionStatuses = computed(
+    () => store.getters["collections/getCollectionStatuses"]
+  );
+
   const requestGetAssignedCollections = async (
     params = {
       page: 1,
       take: 10,
-      searchQuery: "",
-      currentYear: "",
     }
   ) => {
     const resp = await store.dispatch(
@@ -65,10 +71,10 @@ export default function useCollection() {
     return resp;
   };
 
-  const requestGetCollectionsOwedByStudent = async (studentId) => {
+  const requestGetCollectionsOwedByStudent = async ({ studentId, params }) => {
     const resp = await store.dispatch(
       "collections/requestGetCollectionsOwedByStudent",
-      studentId
+      { studentId, params }
     );
 
     return resp;
@@ -78,6 +84,15 @@ export default function useCollection() {
     const resp = await store.dispatch(
       "collections/requestGetCollectionsByStudent",
       { studentId, params }
+    );
+
+    return resp;
+  };
+
+  const requestGetCollectionApplyToStudent = async (studentId) => {
+    const resp = await store.dispatch(
+      "collections/requestGetCollectionApplyToStudent",
+      studentId
     );
 
     return resp;
@@ -128,8 +143,20 @@ export default function useCollection() {
     return resp;
   };
 
-  //helpers
+  const requestGetStudentBalance = async (studentId) => {
+    const resp = await store.dispatch(
+      "collections/requestGetStudentBalance",
+      studentId
+    );
 
+    return resp;
+  };
+
+  const studentBalance = computed(
+    () => store.getters["collections/getStudentBalance"]
+  );
+
+  //helpers
   const collectionId = (id) => {
     if (!id) return;
     return id.substring(0, 8);
@@ -143,7 +170,7 @@ export default function useCollection() {
   return {
     assignedCollections,
     collectionId,
-    collections,
+    collectionsList,
     collectionsByStudent,
     collectionsOwedByStudent,
     collectionTypes,
@@ -154,7 +181,7 @@ export default function useCollection() {
     putCollection,
     putCollectionStudent,
     requestGetAssignedCollections,
-    requestGetCollections,
+    requestGetCollectionsList,
     requestGetCollectionsByStudent,
     requestGetCollectionsOwedByStudent,
     requestGetCollectionTypes,
@@ -162,5 +189,10 @@ export default function useCollection() {
     requestPostCollectionStudent,
     requestPostCollectionStudents,
     setCollectionsByStudent,
+    requestGetCollectionApplyToStudent,
+    requestGetCollectionStatuses,
+    collectionStatuses,
+    requestGetStudentBalance,
+    studentBalance,
   };
 }

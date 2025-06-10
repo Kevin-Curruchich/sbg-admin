@@ -1,5 +1,5 @@
-export const getCollections = (state) => {
-  return state.collections;
+export const getCollectionsList = (state) => {
+  return state.collectionsList;
 };
 export const getIsLoadingCollections = (state) => {
   return state.isLoadingCollection;
@@ -30,4 +30,12 @@ export const getCollectionsByStudent = (state) => {
 
 export const getIsLoadingCollectionsByStudent = (state) => {
   return state.isLoadingCollectionsByStudent;
+};
+
+export const getCollectionStatuses = (state) => {
+  return state.collectionStatuses;
+};
+
+export const getStudentBalance = (state) => {
+  return state.studentBalance;
 };

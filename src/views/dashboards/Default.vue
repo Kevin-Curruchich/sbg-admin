@@ -9,11 +9,23 @@
     <div class="row">
       <div class="col-lg-12">
         <div class="row">
-          <div class="col-5">
+          <div class="col-3">
+            <mini-statistics-card
+              title="Estudiantes"
+              :value="dashboardData?.studentsCount"
+              description=""
+              :icon="{
+                component: 'fas fa-users',
+                background: 'bg-gradient-danger',
+                shape: 'rounded-circle',
+              }"
+            />
+          </div>
+          <div class="col-3">
             <mini-statistics-card
               title="Aportes registrados"
-              :value="formatMoney(dashboardData.totalPayments)"
-              description=""
+              :value="dashboardData?.totalCurrentMonth?.total"
+              :description="dashboardData?.totalCurrentMonth?.month"
               :icon="{
                 component: 'ni ni-money-coins',
                 background: 'bg-gradient-primary',
@@ -21,11 +33,11 @@
               }"
             />
           </div>
-          <div class="col-5">
+          <div class="col-3">
             <mini-statistics-card
-              title="Cobros"
-              :value="formatMoney(dashboardData.totalOwed)"
-              description=""
+              title="Cobros Actuales"
+              :value="dashboardData?.collectionRate?.totalCharges"
+              :description="dashboardData?.totalCurrentMonth?.month"
               :icon="{
                 component: 'ni ni-cart',
                 background: 'bg-gradient-warning',
@@ -33,26 +45,15 @@
               }"
             />
           </div>
-          <!-- <div class="col-4 ">
+          <div class="col-3">
             <mini-statistics-card
-              title="New Clients"
-              value="+3,462"
-              description=""
+              title="Tasa de cobro"
+              :value="dashboardData?.collectionRate?.collectionRate"
+              description="
+                % de los aportes registrados"
               :icon="{
                 component: 'ni ni-paper-diploma',
                 background: 'bg-gradient-success',
-                shape: 'rounded-circle',
-              }"
-            />
-          </div> -->
-          <div class="col-2">
-            <mini-statistics-card
-              title="Estudiantes"
-              :value="dashboardData.totalStudents"
-              description=""
-              :icon="{
-                component: 'fas fa-users',
-                background: 'bg-gradient-danger',
                 shape: 'rounded-circle',
               }"
             />
@@ -64,11 +65,11 @@
               id="chart-line"
               title="Aportes registrados"
               :chart="{
-                labels: ['Apr', 'May', 'Jun'],
+                labels: labelPaymentsByMonth,
                 datasets: [
                   {
                     label: 'Aportes',
-                    data: [50, 40, 300],
+                    data: totalPaymentsByMonth,
                   },
                 ],
               }"
@@ -100,7 +101,7 @@
   </div>
 </template>
 <script>
-import { onMounted } from "vue";
+import { computed, onMounted } from "vue";
 import { useDashboard } from "../../composables";
 import MiniStatisticsCard from "../../examples/Cards/MiniStatisticsCard.vue";
 import GradientLineChart from "../../examples/Charts/GradientLineChart.vue";
@@ -114,17 +115,22 @@ export default {
     // AuthorsTable,
   },
   setup() {
-    const formatMoney = (value) => {
-      if (!value) return 0;
-
-      return value.toLocaleString("en-US", {
-        style: "currency",
-        currency: "GTQ",
-      });
-    };
-
     const { dashboardData, isLoadingDashboard, requestGetDashboard } =
       useDashboard();
+
+    const labelPaymentsByMonth = computed(() => {
+      return (
+        dashboardData.value?.totalPaymentsByMonth.map((item) => item.month) ||
+        []
+      );
+    });
+
+    const totalPaymentsByMonth = computed(() => {
+      return (
+        dashboardData.value?.totalPaymentsByMonth.map((item) => item.total) ||
+        []
+      );
+    });
 
     onMounted(() => {
       requestGetDashboard();
@@ -133,7 +139,8 @@ export default {
     return {
       dashboardData,
       isLoadingDashboard,
-      formatMoney,
+      labelPaymentsByMonth,
+      totalPaymentsByMonth,
     };
   },
 };

@@ -1,4 +1,4 @@
-import isAdminUser from "@/modules/auth/guards/auth-gard-admin.js";
+// import isAdminUser from "@/modules/auth/guards/auth-gard-admin.js";
 // import isAcademicUser from "@/modules/auth/guards/auth-gard-academic.js";
 
 export default {
@@ -12,7 +12,7 @@ export default {
     {
       path: "",
       name: "List of Students",
-      beforeEnter: [isAdminUser],
+      // beforeEnter: [isAdminUser],
       component: () =>
         import(
           /* webpackChunkName: "StudentsList" */ "@/modules/Students/views/Students.vue"

@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
-import isAdminUser from "../modules/auth/guards/auth-gard-admin.js";
+// import isAdminUser from "../modules/auth/guards/auth-gard-admin.js";
 // import isAcademicUser from "../modules/auth/guards/auth-gard-academic.js";
-import isAuthenticatedGuard from "../modules/auth/guards/auth-gard.js";
+// import isAuthenticatedGuard from "../modules/auth/guards/auth-gard.js";
 import Default from "../views/dashboards/Default.vue";
 import StudentsRouter from "./modules/Students";
 import StudentTypesRouter from "./modules/StudentTypes";
@@ -31,37 +31,37 @@ const routes = [
   {
     path: "/dashboard",
     name: "Dashboard",
-    beforeEnter: [isAuthenticatedGuard, isAdminUser],
+    // beforeEnter: [isAuthenticatedGuard, isAdminUser],
     component: Default,
   },
   {
     path: "/students",
-    beforeEnter: [isAuthenticatedGuard],
+    // beforeEnter: [isAuthenticatedGuard],
     ...StudentsRouter,
   },
   {
     path: "/student-types",
-    beforeEnter: [isAuthenticatedGuard, isAdminUser],
+    // beforeEnter: [isAuthenticatedGuard, isAdminUser],
     ...StudentTypesRouter,
   },
   {
     path: "/payments",
-    beforeEnter: [isAuthenticatedGuard],
+    // beforeEnter: [isAuthenticatedGuard],
     ...Payments,
   },
   {
     path: "/collections",
-    beforeEnter: [isAuthenticatedGuard, isAdminUser],
+    // beforeEnter: [isAuthenticatedGuard, isAdminUser],
     ...Collections,
   },
   {
     path: "/reports",
-    beforeEnter: [isAuthenticatedGuard, isAdminUser],
+    // beforeEnter: [isAuthenticatedGuard, isAdminUser],
     ...ReportsRouter,
   },
   {
     path: "/settings",
-    beforeEnter: [isAuthenticatedGuard, isAdminUser],
+    // beforeEnter: [isAuthenticatedGuard, isAdminUser],
     ...SettingsRouter,
   },
   {

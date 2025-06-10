@@ -1,5 +1,5 @@
 <template>
-  <modal scrollable :show="showModal" size="lg" :on-hide-modal="onHideModal">
+  <modal scrollable :show="showModal" size="xl" :on-hide-modal="onHideModal">
     <template #header> Registrar Aporte </template>
     <template #body>
       <el-form
@@ -10,137 +10,124 @@
         :rules="rules"
       >
         <div class="row">
-          <div class="col-md-6">
-            <el-form-item label="Estudiante" prop="studentId">
+          <div class="col-md-12">
+            <el-form-item label="Estudiante" prop="student_id">
               <el-select
-                v-model="formModel.studentId"
+                v-model="formModel.student_id"
                 placeholder="Estudiante"
                 filterable
               >
                 <el-option
-                  v-for="student in studentsList.data"
-                  :key="student.studentId"
-                  :value="student.studentId"
-                  :label="student.studentFullName"
+                  v-for="student in studentsList"
+                  :key="student.student_id"
+                  :value="student.student_id"
+                  :label="student.first_name + ' ' + student.last_name"
                 />
               </el-select>
             </el-form-item>
           </div>
-          <div class="col-md-6">
-            <el-form-item label="Cobro a debitar" prop="collectionStudentId">
-              <el-select
-                v-model="formModel.collectionStudentId"
-                placeholder="Cobro a debitar"
-                filterable
-              >
-                <el-option
-                  v-for="collection in collectionsOwedByStudent"
-                  :key="collection.collectionStudentId"
-                  :value="collection.collectionStudentId"
-                  :label="`${collection.collection.collectionName} | ${collection?.collectionStudentDate} | ${collection.Quartetly.quartetlyName} `"
+
+          <div v-if="formModel.student_id" class="col-md-12">
+            <el-divider style="margin-top: 5px; margin-bottom: 5px" />
+
+            <el-radio-group v-model="typeToCreatePayment">
+              <el-radio label="1">Especificos</el-radio>
+              <el-radio label="2"> Cobros Sugeridos ✨ </el-radio>
+            </el-radio-group>
+          </div>
+          <template v-if="typeToCreatePayment === '1'">
+            <div class="col-12 mb-3">
+              <collections-owed-by-student
+                v-if="formModel.student_id"
+                ref="collectionsToPayForm"
+                :student-id="formModel.student_id"
+              />
+            </div>
+          </template>
+
+          <template v-if="formModel.student_id">
+            <div class="col-md-4">
+              <el-form-item label="Tipo de Pago" prop="payment_method_id">
+                <el-select
+                  v-model="formModel.payment_method_id"
+                  placeholder="Tipo de Pago"
+                  filterable
+                >
+                  <el-option
+                    v-for="method in paymentMethodsArray"
+                    :key="method.payment_method_id"
+                    :value="method.payment_method_id"
+                    :label="method.name"
+                  />
+                </el-select>
+              </el-form-item>
+            </div>
+
+            <div v-if="!disabledReferenceNumber" class="col-md-4">
+              <el-form-item label="Recibo" prop="reference_number">
+                <el-input
+                  v-model="formModel.reference_number"
+                  type="text"
+                  placeholder="Recibo"
                 />
-              </el-select>
-            </el-form-item>
-          </div>
-          <div class="col-md-12">
-            <el-divider></el-divider>
-          </div>
-          <div class="col-md-6">
-            <el-form-item label="Saldo" prop="collectionStudentAmountOwed">
-              <el-input
-                v-model="formModel.collectionStudentAmountOwed"
-                type="number"
-                placeholder="Saldo"
-                :disabled="true"
-              />
-            </el-form-item>
-          </div>
-          <div class="col-md-6">
-            <el-form-item label="Monto aporte" prop="paymentAmount">
-              <el-input
-                v-model="formModel.paymentAmount"
-                type="number"
-                placeholder="Monto aporte"
-              />
-            </el-form-item>
-          </div>
+              </el-form-item>
+            </div>
 
-          <div class="col-md-6">
-            <el-form-item label="Fecha" prop="paymentDate">
-              <el-date-picker
-                v-model="formModel.paymentDate"
-                placeholder="Fecha"
-                format="DD/MM/YYYY"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </div>
+            <div class="col-md-4">
+              <el-form-item label="Fecha Aporte" prop="payment_date">
+                <el-date-picker
+                  v-model="formModel.payment_date"
+                  placeholder="Fecha"
+                  format="DD/MM/YYYY"
+                  style="width: 100%"
+                />
+              </el-form-item>
+            </div>
 
-          <div class="col-md-6">
-            <el-form-item label="Recibo" prop="paymentSlip">
-              <el-input
-                v-model="formModel.paymentSlip"
-                type="text"
-                placeholder="Recibo"
-              />
-            </el-form-item>
-          </div>
-          <div class="col-md-12">
-            <el-form-item label="Descripcion" prop="paymentDescription">
-              <el-input
-                v-model="formModel.paymentDescription"
-                placeholder="Descripcion"
-                type="textarea"
-                rows="2"
-              />
-            </el-form-item>
-          </div>
+            <div class="col-md-12">
+              <el-form-item label="Descripción" prop="description">
+                <el-input
+                  v-model="formModel.paymentDescription"
+                  type="textarea"
+                  :min="3"
+                />
+              </el-form-item>
+            </div>
+          </template>
         </div>
       </el-form>
     </template>
     <template #footer>
-      <argon-button variant="outline" @click="onHideModal"
-        >Cancelar</argon-button
-      >
-      <argon-button :loading="lockModal" @click="onSubmit"
-        >Agregar</argon-button
-      >
+      <argon-button variant="outline" @click="onHideModal">
+        Cancelar
+      </argon-button>
+      <argon-button :disabled="lockModal" @click="onSubmit">
+        Agregar
+      </argon-button>
     </template>
   </modal>
-
-  <el-dialog
-    v-model="dialogVisible"
-    title="Enviar Correo"
-    width="30%"
-    :close-on-press-escape="false"
-    :close-on-click-modal="false"
-  >
-    <span>Enviar Recibo por correo</span>
-    <template #footer>
-      <span class="dialog-footer">
-        <el-button @click="onCloseDialog">No enviar</el-button>
-        <el-button type="primary" @click="onSendMail"> Enviar </el-button>
-      </span>
-    </template>
-  </el-dialog>
 </template>
 
 <script>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch, reactive } from "vue";
+import { ElMessage } from "element-plus";
+import { ArgonButton, Modal } from "@/components";
+import CollectionsOwedByStudent from "./CollectionsOwedByStudent.vue";
 import {
   useStudents,
   useCollections,
   useFormatDate,
   usePayments,
 } from "@/composables";
-import { ArgonButton, Modal } from "@/components";
 import errorMessages from "@/constants/formErrorMessages";
-import { ElMessage } from "element-plus";
+import { paymentMethodsArray } from "@/constants/paymentMethod";
+import paymentMethods from "@/constants/paymentMethod";
 
 export default {
   components: {
     Modal,
     ArgonButton,
+    CollectionsOwedByStudent,
   },
   props: {
     showModal: {
@@ -150,116 +137,154 @@ export default {
   },
   emits: ["hidde-modal", "accept-modal"],
   setup(_, { emit }) {
-    const requiredMesage = errorMessages.required;
+    const requiredMessage = errorMessages.required;
     //instances
-    const { requestGetStudentsList, studentsList } = useStudents();
-    const { collectionsOwedByStudent, requestGetCollectionsOwedByStudent } =
-      useCollections();
-    const { requestPostPayments, requestPostInvoiceMail } = usePayments();
+    const { requestGetStudentsList, studentsList, programs } = useStudents();
+    const {
+      collectionsOwedByStudent,
+      requestGetStudentBalance,
+      studentBalance,
+    } = useCollections();
+    const { requestPostPayments } = usePayments();
 
     const { formatDateYMD } = useFormatDate();
 
     //refs
+    const collectionsToPayForm = ref(null);
     const lockModal = ref(false);
-    const paymentReponse = ref(null);
-    const dialogVisible = ref(false);
-    const collectionsToStudent = ref([]);
+    const typeToCreatePayment = ref("1");
+    const paymentResponse = ref(null);
+
     const formRef = ref(null);
-    const formModel = ref({
-      studentId: "",
-      collectionStudentId: "",
-      paymentDate: "",
-      paymentSlip: "",
-      collectionStudentAmountOwed: "",
-      paymentAmount: "",
+    const formModel = reactive({
+      is_from_credit_balance: false,
+      student_id: "",
+      payment_method_id: "",
+      charge_id: "",
+      payment_date: "",
+      reference_number: "",
+
       paymentDescription: "",
     });
 
+    const totalAmountDueFormatted = ref("");
+
+    const disabledReferenceNumber = computed(() => {
+      return (
+        formModel.payment_method_id == "" ||
+        formModel.payment_method_id == paymentMethods.CASH ||
+        formModel.payment_method_id == paymentMethods.SCHOLARSHIP
+      );
+    });
+
     const rules = ref({
-      studentId: [{ required: true, message: requiredMesage }],
-      collectionStudentId: [{ required: true, message: requiredMesage }],
-      paymentAmount: [
-        {
-          required: true,
-          message: requiredMesage,
-        },
-        {
-          validator: (rule, value, callback) => {
-            if (value > formModel.value.collectionStudentAmountOwed) {
-              callback(new Error("El monto a abonar debe ser menor al saldo"));
-            } else {
-              callback();
-            }
-          },
-        },
-      ],
-      paymentDate: [{ required: true, message: requiredMesage }],
+      student_id: [{ required: true, message: requiredMessage }],
+      payment_method_id: [{ required: true, message: requiredMessage }],
+      payment_date: [{ required: true, message: requiredMessage }],
     });
 
     //methods
     const onHideModal = () => {
-      formRef.value.resetFields();
+      onClearData();
+      onClearCollectionsForm();
       emit("hidde-modal");
-    };
-
-    const onCloseDialog = () => {
-      dialogVisible.value = false;
-      onClearData();
-      emit("accept-modal");
-    };
-
-    const onSendMail = async () => {
-      const paymentId = paymentReponse.value[1].paymentId;
-      await requestPostInvoiceMail(paymentId);
-
-      onClearData();
-      emit("accept-modal");
-
-      ElMessage({
-        showClose: true,
-        message: "Correo enviado correctamente",
-        type: "success",
-      });
     };
 
     const onClearData = () => {
       formRef.value.resetFields();
-      paymentReponse.value = null;
-      collectionsToStudent.value = [];
+      paymentResponse.value = null;
+
+      formModel.student_id = "";
+      formModel.charge_id = "";
+      formModel.payment_method_id = "";
+      formModel.payment_date = "";
+      formModel.reference_number = "";
+      formModel.paymentDescription = "";
       lockModal.value = false;
-      dialogVisible.value = false;
+    };
+
+    const onClearCollectionsForm = () => {
+      if (!collectionsToPayForm.value) return;
+
+      collectionsToPayForm.value.onClear();
     };
 
     const onSubmit = async () => {
-      await formRef.value.validate((isValid) => {
-        if (isValid) {
-          lockModal.value = true;
-          formModel.value.paymentDate = formatDateYMD(
-            formModel.value.paymentDate
-          );
-          formModel.value.paymentAmount = +formModel.value.paymentAmount;
-
-          requestPostPayments(formModel.value)
-            .then((data) => {
-              paymentReponse.value = data;
-              dialogVisible.value = true;
-            })
-            .catch(() => {
-              lockModal.value = false;
-            });
+      const isGeneralFormValid = await formRef.value.validate((isValid) => {
+        if (!isValid) {
+          ElMessage({
+            showClose: true,
+            message: "Por favor, complete correctamente el formulario",
+            type: "error",
+          });
+          return false;
         }
+
+        return true;
       });
+
+      if (!isGeneralFormValid) return;
+
+      const collectionsToPay = await collectionsToPayForm.value.onValidate();
+
+      if (!collectionsToPay) {
+        ElMessage({
+          showClose: true,
+          message: "Por favor, complete correctamente el formulario",
+          type: "error",
+        });
+        return false;
+      }
+
+      lockModal.value = true;
+
+      const paymentDetails = collectionsToPay.collectionWithPayments.map(
+        (charge) => ({
+          charge_id: charge.charge_id,
+          applied_amount: +charge.paymentAmount,
+          description: formModel.paymentDescription,
+        })
+      );
+
+      const paymentData = {
+        student_id: formModel.student_id,
+        payment_date: formatDateYMD(formModel.payment_date),
+        payment_method_id: formModel.payment_method_id,
+        reference_number: formModel.reference_number,
+        amount: +collectionsToPay.paymentTotalAmount,
+        is_from_credit_balance: formModel.is_from_credit_balance || false,
+        payment_details: paymentDetails,
+      };
+
+      requestPostPayments(paymentData)
+        .then((data) => {
+          paymentResponse.value = data;
+
+          onClearData();
+          onClearCollectionsForm();
+          emit("accept-modal");
+        })
+        .catch(() => {
+          ElMessage({
+            showClose: true,
+            message: "Error al registrar el aporte",
+            type: "error",
+          });
+        })
+        .finally(() => {
+          lockModal.value = false;
+        });
     };
 
     //watchers
     watch(
-      () => formModel.value.studentId,
-      (studentId) => {
-        if (studentId) {
+      () => formModel.student_id,
+      (student_id) => {
+        if (student_id) {
           lockModal.value = true;
-          formModel.value.collectionStudentId = "";
+          formModel.charge_id = "";
 
-          requestGetCollectionsOwedByStudent(studentId)
+          Promise.all([requestGetStudentBalance(student_id)])
             .then(() => {
               lockModal.value = false;
             })
@@ -271,19 +296,17 @@ export default {
     );
 
     watch(
-      () => formModel.value.collectionStudentId,
-      (collectionStudentId) => {
-        if (collectionStudentId) {
-          formModel.value.collectionStudentAmountOwed =
-            collectionsOwedByStudent.value.find(
-              (collection) =>
-                collection.collectionStudentId === collectionStudentId
-            ).collectionStudentAmountOwed;
-        }
+      () => formModel.charge_id,
+      (collectionId) => {
+        if (!collectionId) return;
+        const collection = collectionsOwedByStudent.value.find(
+          (collection) => collection.charge_id === formModel.charge_id
+        );
+
+        totalAmountDueFormatted.value = collection.totalAmountDueFormatted;
       }
     );
 
-    //lifecycle
     onMounted(() => {
       requestGetStudentsList();
     });
@@ -297,12 +320,15 @@ export default {
       lockModal,
       studentsList,
       collectionsOwedByStudent,
-      dialogVisible,
-      onCloseDialog,
-      onSendMail,
+      programs,
+      typeToCreatePayment,
+      totalAmountDueFormatted,
+      paymentMethodsArray,
+      paymentMethods,
+      disabledReferenceNumber,
+      studentBalance,
+      collectionsToPayForm,
     };
   },
 };
 </script>
-
-<style></style>

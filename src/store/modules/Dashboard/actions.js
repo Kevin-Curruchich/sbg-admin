@@ -4,7 +4,7 @@ export const requestGetDashboard = async ({ commit }) => {
   return new Promise((resolve, reject) => {
     commit("setIsLoadingDashboard", true);
     sbgApi
-      .get("/dashboard")
+      .get("/general/dashboard")
       .then((response) => {
         commit("setDashboardData", response.data);
         commit("setIsLoadingDashboard", false);

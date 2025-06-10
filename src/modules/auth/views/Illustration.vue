@@ -26,10 +26,10 @@
                     label-position="top"
                   >
                     <div class="mb-3">
-                      <el-form-item label="Correo electronico" prop="userEmail">
+                      <el-form-item label="Correo electronico" prop="email">
                         <el-input
                           id="email"
-                          v-model="userForm.userEmail"
+                          v-model="userForm.email"
                           type="email"
                           placeholder="Correo electronico"
                         />
@@ -110,7 +110,7 @@ import ArgonButton from "@/components/ArgonButton.vue";
 const body = document.getElementsByTagName("body")[0];
 import useAuth from "@/composables/useAuth";
 import sbgImage from "../../../../public/sbg-image.jpg";
-import userRole from "../../../constants/userRole";
+// import userRole from "../../../constants/userRole";
 
 export default {
   name: "SigninIllustration",
@@ -119,18 +119,18 @@ export default {
   },
   setup() {
     const router = useRouter();
-    const { loginUser, userData } = useAuth();
+    const { loginUser /*userData*/ } = useAuth();
 
     const formRef = ref(null);
     const sendingRequest = ref(false);
 
     const userForm = ref({
-      userEmail: "",
+      email: "",
       password: "",
     });
 
     const rules = ref({
-      userEmail: [
+      email: [
         {
           required: true,
           message: "Por favor ingrese su correo",
@@ -160,17 +160,20 @@ export default {
         }
         loginUser(userForm.value)
           .then(({ ok }) => {
+            console.log(ok);
+
             if (ok) {
-              if (userData.value?.roleId === userRole.ACADEMIC) {
-                router.push({ name: "List of Students" });
-              } else if (userData.value.studentId) {
-                router.push({
-                  name: "Student",
-                  params: { id: userData.value.studentId },
-                });
-              } else {
-                router.push({ name: "Dashboard" });
-              }
+              // if (userData.value?.roleId === userRole.ACADEMIC) {
+              //   router.push({ name: "List of Students" });
+              // } else if (userData.value.studentId) {
+              //   router.push({
+              //     name: "Student",
+              //     params: { id: userData.value.studentId },
+              //   });
+              // } else {
+              console.log("Navegando a estudiantes");
+              router.push({ name: "List of Students" });
+              // }
             }
           })
           .catch(({ error }) => {

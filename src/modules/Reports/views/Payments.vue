@@ -11,35 +11,30 @@
             <div class="col-md-3">
               <label class="form-label"> Nombre </label>
 
-              <el-input v-model="studentName" placeholder="Nombre" clearable />
+              <el-input v-model="searchQuery" placeholder="Nombre" clearable />
             </div>
-            <div class="col-md-3">
+            <div class="col-md-6">
               <label class="form-label"> Mes Inicial </label>
               <div>
                 <el-date-picker
-                  v-model="startDate"
-                  type="month"
-                  format="MM/YYYY"
+                  v-model="payment_date"
+                  type="daterange"
+                  start-placeholder="Mes Inicial"
+                  end-placeholder="Mes Final"
+                  value-format="YYYY-MM-DD"
+                  format="DD/MM/YYYY"
                   placeholder="Selecccione Mes Inicial"
                 />
               </div>
             </div>
-            <div class="col-md-3">
-              <label class="form-label"> Mes Final </label>
-              <el-date-picker
-                v-model="endDate"
-                type="month"
-                format="MM/YYYY"
-                placeholder="Selecccione Mes Final"
-              />
-            </div>
+
             <div class="col-md-3">
               <div
                 class="h-100 d-flex align-items-end justify-content-between px-2"
               >
                 <argon-button
                   color="primary"
-                  :disabled="startDate === '' || endDate === ''"
+                  :disabled="payment_date === ''"
                   @click="onFilter"
                 >
                   Filtrar
@@ -69,7 +64,7 @@
                 <span>{{ getPaymentsId(row.paymentId) }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="Estudiante" prop="studentName" />
+            <el-table-column label="Estudiante" prop="searchQuery" />
             <el-table-column label="Monto" prop="paymentAmount" />
             <el-table-column label="Fecha" prop="paymentDate" />
             <el-table-column label="Cobro" prop="collectionStudent" />
@@ -115,8 +110,8 @@ export default {
 
     const { getPaymentsId } = usePayments();
 
-    const studentName = ref("");
-    const startDate = ref("");
+    const searchQuery = ref("");
+    const payment_date = ref("");
     const endDate = ref("");
     const pagination = ref({
       page: 1,
@@ -124,9 +119,8 @@ export default {
     });
 
     const params = computed(() => ({
-      studentName: studentName.value,
-      startDate: formatDateYM(startDate.value),
-      endDate: formatDateYM(endDate.value),
+      searchQuery: searchQuery.value,
+      payment_date: formatDateYM(payment_date.value),
       page: pagination.value.page,
       take: pagination.value.take,
     }));
@@ -134,11 +128,12 @@ export default {
     //methods
 
     const onExportReport = async () => {
-      await requestDownloadPaymentsReport({
-        studentName: studentName.value || null,
-        startDate: formatDateYM(startDate.value),
-        endDate: formatDateYM(endDate.value),
-      }).then((response) => {
+      const params = {
+        searchQuery: searchQuery.value || null,
+        payment_date: formatDateYM(payment_date.value),
+      };
+
+      await requestDownloadPaymentsReport(params).then((response) => {
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
         link.href = url;
@@ -164,8 +159,8 @@ export default {
     );
 
     return {
-      studentName,
-      startDate,
+      searchQuery,
+      payment_date,
       endDate,
       pagination,
       paymentsReport,
