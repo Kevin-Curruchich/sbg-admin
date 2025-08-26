@@ -311,6 +311,7 @@ export default {
     onMounted(() => {
       requestGetPrograms();
       requestGetStudentTypes();
+      requestGetPrograms();
     });
 
     return {

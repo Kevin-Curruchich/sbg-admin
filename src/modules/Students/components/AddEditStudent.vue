@@ -154,7 +154,7 @@
 
 <script>
 import { onMounted, ref, watch } from "vue";
-import { useStudents } from "@/composables";
+import { useStudents, useGrades } from "@/composables";
 import { ArgonButton, Modal } from "@/components";
 import errorMessages from "@/constants/formErrorMessages";
 import countries from "../../../constants/countries";
@@ -175,13 +175,9 @@ export default {
     const requiredMessage = errorMessages.required;
     const inValidEmailMessage = errorMessages.inValidEmail;
     //instances
-    const {
-      requestPostStudent,
-      programs,
-      studentTypes,
-      requestPostStudentProgram,
-    } = useStudents();
+    const { requestPostStudent, studentTypes } = useStudents();
 
+    const { programs, requestPostStudentProgram } = useGrades();
     //refs
     const sendingRequest = ref(false);
     const formRef = ref(null);
