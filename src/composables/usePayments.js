@@ -47,10 +47,26 @@ export default function usePayments() {
     return response;
   };
 
+  const requestSpreadStudentPositiveCredit = async (studentId) => {
+    const response = await store.dispatch(
+      "payments/requestSpreadStudentPositiveCredit",
+      studentId
+    );
+    return response;
+  };
+
   const requestPostInvoiceMail = async (id) => {
     const response = await store.dispatch(
       "payments/requestPostInvoiceMail",
       id
+    );
+    return response;
+  };
+
+  const requestDeletePayment = async (paymentId) => {
+    const response = await store.dispatch(
+      "payments/requestDeletePayment",
+      paymentId
     );
     return response;
   };
@@ -114,5 +130,7 @@ export default function usePayments() {
     requestPostPayments,
     requestPostInvoiceMail,
     requestPostGlobalStudentsPayment,
+    requestSpreadStudentPositiveCredit,
+    requestDeletePayment,
   };
 }

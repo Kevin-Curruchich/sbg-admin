@@ -11,7 +11,7 @@
           <div class="my-auto mx-auto">
             <span class="fs-4">{{ student.studentFullName }}</span>
           </div>
-          <div class="">
+          <div class="d-flex justify-content-end align-items-center gap-2">
             <el-tag
               :type="
                 getStudentStatusColor(
@@ -19,10 +19,17 @@
                 )
               "
             >
-              <span class="text-muted fs-6">{{
-                student.student_statuses?.name
-              }}</span>
+              <span class="text-muted fs-6">
+                {{ student.student_statuses?.name }}
+              </span>
             </el-tag>
+            <el-popconfirm title="Cambiar estado" @confirm="onChangeStatus">
+              <template #reference>
+                <el-button variant="outline" size="small" icon>
+                  <i class="fas fa-sync-alt"></i>
+                </el-button>
+              </template>
+            </el-popconfirm>
           </div>
         </div>
       </div>
@@ -78,7 +85,8 @@ export default {
   setup(props) {
     //instances
     const router = useRouter();
-    const { student, requestGetStudentById, isLoadingStudent } = useStudent();
+    const { student, requestGetStudentById, isLoadingStudent, onChangeStatus } =
+      useStudent();
     const { userIsAdmin, userIsAcademic } = useAuth();
 
     const onBack = () => {
@@ -98,9 +106,8 @@ export default {
       userIsAcademic,
       props,
       getStudentStatusColor,
+      onChangeStatus,
     };
   },
 };
 </script>
-
-<style></style>

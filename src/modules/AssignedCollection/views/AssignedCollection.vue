@@ -6,7 +6,7 @@
         <div class="pb-0 card-header">
           <div class="d-lg-flex">
             <div>
-              <h5 class="mb-0">Cobros asignados</h5>
+              <h5 class="mb-0">Asignación de Cobros</h5>
             </div>
             <div class="my-auto mt-4 ms-auto mt-lg-0">
               <div class="my-auto ms-auto">

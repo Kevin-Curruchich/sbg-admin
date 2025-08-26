@@ -5,7 +5,7 @@ const useReports = () => {
   const store = useStore();
 
   //getters
-  const isDownlodReportByStudent = computed(
+  const isDownloadingStudentChargesReport = computed(
     () => store.getters["reports/getIsDownloadReportByStudent"]
   );
 
@@ -64,7 +64,7 @@ const useReports = () => {
   };
 
   return {
-    isDownlodReportByStudent,
+    isDownloadingStudentChargesReport,
     requestDownloadCollectionHistoryByStudent,
     isDownloadingReportByYear,
     requestDownloadCollectionHistoryByYear,

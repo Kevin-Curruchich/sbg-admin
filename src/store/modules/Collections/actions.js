@@ -20,6 +20,38 @@ export const requestGetCollectionsList = async ({ commit }, { params }) => {
   });
 };
 
+export const requestChargeFrequency = async ({ commit }) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .get(`/charges/frequency`)
+      .then((response) => {
+        commit("setChargesFrequency", response.data);
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+export const requestGetCollections = async ({ commit }, params) => {
+  return new Promise((resolve, reject) => {
+    commit("setIsLoadingCollections", true);
+    sbgApi
+      .get(`/charges`, {
+        params,
+      })
+      .then((response) => {
+        commit("setCollections", response.data);
+        commit("setIsLoadingCollections", false);
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
 export const requestGetAssignedCollections = async ({ commit }, params) => {
   return new Promise((resolve, reject) => {
     commit("setIsLoadingAssignedCollections", true);
@@ -85,7 +117,7 @@ export const requestGetCollectionTypes = async ({ commit }) => {
   return new Promise((resolve, reject) => {
     commit("setIsLoadingCollectionTypes", true);
     sbgApi
-      .get(`/collections/types`)
+      .get(`/charges/types`)
       .then((response) => {
         commit("setCollectionTypes", response.data);
         commit("setIsLoadingCollectionTypes", false);

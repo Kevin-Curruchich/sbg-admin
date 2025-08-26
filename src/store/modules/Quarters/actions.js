@@ -1,23 +1,22 @@
 import sbgApi from "@/apis/sbgApi";
 
-export const requestGetQuartres = async ({ commit }, params) => {
+export const requestGetTerms = async ({ commit }, params) => {
   return new Promise((resolve, reject) => {
-    commit("setIsLoadingQuarters", true);
+    commit("setIsLoadingTerms", true);
     sbgApi
-      .get(`/quartes`, { params })
+      .get(`/terms`, { params })
       .then((response) => {
-        commit("setQuarters", response.data);
-        commit("setIsLoadingQuarters", false);
+        commit("setTerms", response.data);
+        commit("setIsLoadingTerms", false);
         resolve(response.data);
       })
       .catch((error) => {
-        console.log(error);
         reject(error);
       });
   });
 };
 
-export const requestGetQuartresList = async ({ commit }, params) => {
+export const requestGetTermsList = async ({ commit }, params) => {
   return new Promise((resolve, reject) => {
     sbgApi
       .get(`/quartes/list`, { params })
@@ -26,7 +25,20 @@ export const requestGetQuartresList = async ({ commit }, params) => {
         resolve(response.data);
       })
       .catch((error) => {
-        console.log(error);
+        reject(error);
+      });
+  });
+};
+
+export const requestGetTermsStatuses = async ({ commit }) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .get(`/terms/statuses`)
+      .then((response) => {
+        commit("setTermsStatuses", response.data);
+        resolve(response.data);
+      })
+      .catch((error) => {
         reject(error);
       });
   });
@@ -41,37 +53,34 @@ export const requestGetQuartresByStudent = async ({ commit }, id) => {
         resolve(response.data);
       })
       .catch((error) => {
-        console.log(error);
         reject(error);
       });
   });
 };
 
 //post
-export const requestPostQuarters = async (_, data) => {
+export const requestPostTerm = async (_, data) => {
   return new Promise((resolve, reject) => {
     sbgApi
-      .post(`/quartes`, data)
+      .post(`/terms`, data)
       .then((response) => {
         resolve(response.data);
       })
       .catch((error) => {
-        console.log(error);
         reject(error);
       });
   });
 };
 
 //put
-export const requestPutQuarters = async (_, { data, id }) => {
+export const requestPutTerm = async (_, { data, id }) => {
   return new Promise((resolve, reject) => {
     sbgApi
-      .put(`/quartes/${id}`, data)
+      .put(`/terms/${id}`, data)
       .then((response) => {
         resolve(response.data);
       })
       .catch((error) => {
-        console.log(error);
         reject(error);
       });
   });

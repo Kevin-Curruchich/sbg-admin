@@ -30,9 +30,20 @@
           <div v-if="formModel.student_id" class="col-md-12">
             <el-divider style="margin-top: 5px; margin-bottom: 5px" />
 
-            <el-radio-group v-model="typeToCreatePayment">
+            <el-radio-group v-if="false" v-model="typeToCreatePayment">
               <el-radio label="1">Especificos</el-radio>
-              <el-radio label="2"> Cobros Sugeridos ✨ </el-radio>
+              <el-radio label="2">
+                Cobros Sugeridos
+                <el-popover
+                  style="width: 200px; max-width: 300px"
+                  title="Cobros Sugeridos"
+                  content="El monto total de aporte sera distribuido entre los cobros pendientes del estudiante. Si solventa el primer cobro, el resto se aplicara al siguiente cobro pendiente."
+                >
+                  <template #reference>
+                    <i class="fas fa-info-circle" />
+                  </template>
+                </el-popover>
+              </el-radio>
             </el-radio-group>
           </div>
           <template v-if="typeToCreatePayment === '1'">
@@ -106,6 +117,26 @@
       </argon-button>
     </template>
   </modal>
+  <el-dialog v-model="showCreditDialog" title="Crédito disponible">
+    <span>
+      El estudiante tiene un crédito disponible de
+      {{ studentBalance.studentCreditFormatted }}.
+
+      <br />
+
+      Utiliza el crédito disponible para solventar cobros pendientes antes de
+      registrar un nuevo pago.
+    </span>
+
+    <template #footer>
+      <argon-button variant="outline" @click="showCreditDialog = false">
+        Cerrar
+      </argon-button>
+      <argon-button :disabled="lockModal" @click="onNavigateToStudentPage">
+        Agregar
+      </argon-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script>
@@ -122,6 +153,7 @@ import {
 import errorMessages from "@/constants/formErrorMessages";
 import { paymentMethodsArray } from "@/constants/paymentMethod";
 import paymentMethods from "@/constants/paymentMethod";
+import { useRouter } from "vue-router";
 
 export default {
   components: {
@@ -139,6 +171,7 @@ export default {
   setup(_, { emit }) {
     const requiredMessage = errorMessages.required;
     //instances
+    const router = useRouter();
     const { requestGetStudentsList, studentsList, programs } = useStudents();
     const {
       collectionsOwedByStudent,
@@ -154,10 +187,10 @@ export default {
     const lockModal = ref(false);
     const typeToCreatePayment = ref("1");
     const paymentResponse = ref(null);
+    const showCreditDialog = ref(false);
 
     const formRef = ref(null);
     const formModel = reactive({
-      is_from_credit_balance: false,
       student_id: "",
       payment_method_id: "",
       charge_id: "",
@@ -188,6 +221,13 @@ export default {
       onClearData();
       onClearCollectionsForm();
       emit("hidde-modal");
+    };
+
+    const onNavigateToStudentPage = () => {
+      router.push({
+        name: "Student",
+        params: { id: formModel.student_id },
+      });
     };
 
     const onClearData = () => {
@@ -252,7 +292,7 @@ export default {
         payment_method_id: formModel.payment_method_id,
         reference_number: formModel.reference_number,
         amount: +collectionsToPay.paymentTotalAmount,
-        is_from_credit_balance: formModel.is_from_credit_balance || false,
+
         payment_details: paymentDetails,
       };
 
@@ -286,9 +326,13 @@ export default {
 
           Promise.all([requestGetStudentBalance(student_id)])
             .then(() => {
-              lockModal.value = false;
+              console.log(studentBalance.value);
+
+              if (studentBalance.value.studentHasCredit) {
+                showCreditDialog.value = true;
+              }
             })
-            .catch(() => {
+            .finally(() => {
               lockModal.value = false;
             });
         }
@@ -328,6 +372,8 @@ export default {
       disabledReferenceNumber,
       studentBalance,
       collectionsToPayForm,
+      showCreditDialog,
+      onNavigateToStudentPage,
     };
   },
 };

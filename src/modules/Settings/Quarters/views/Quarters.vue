@@ -2,12 +2,10 @@
   <div class="py-3 container-fluid">
     <div class="row">
       <div class="col-12">
-        <!-- <div class="card"> -->
-        <!-- Card header -->
         <div class="pb-0 card-header">
           <div class="d-lg-flex">
             <div>
-              <h5 class="mb-0">Trimestres</h5>
+              <h5 class="mb-0">Ciclos</h5>
             </div>
             <div class="my-auto mt-4 ms-auto mt-lg-0">
               <div class="my-auto ms-auto">
@@ -24,22 +22,15 @@
         </div>
         <div class="px-0 pb-0 card-body">
           <el-table v-loading="isLoadingQuarters" :data="quarters.data">
-            <el-table-column label="Nombre">
+            <el-table-column label="Nombre" prop="term_name" />
+            <el-table-column label="Fecha Inicio" prop="start_date_formatted" />
+            <el-table-column label="Fecha Fin" prop="end_date_formatted" />
+            <el-table-column label="Estado">
               <template #default="{ row }">
-                {{ row.quartetlyName }}
+                <span>{{ row.term_status?.name }}</span>
               </template>
             </el-table-column>
-            <el-table-column label="Fecha Inicio">
-              <template #default="{ row }">
-                {{ formatDateDMY(row.quartetlyStart) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="Fecha Fin">
-              <template #default="{ row }">
-                {{ formatDateDMY(row.quartetlyEnd) }}
-              </template>
-            </el-table-column>
-            <el-table-column label="Acciones">
+            <el-table-column width="80">
               <template #default="{ row }">
                 <el-button size="small" @click="onEditQuarter(row)">
                   <i class="fas fa-edit"></i>
@@ -49,14 +40,13 @@
           </el-table>
         </div>
         <div class="mt-4 d-flex justify-content-end">
-          <!-- <el-pagination
+          <el-pagination
             background
             layout="prev, pager, next"
             :total="total"
             @current-change="onChangePage"
-          /> -->
+          />
         </div>
-        <!-- </div> -->
       </div>
     </div>
   </div>
@@ -78,7 +68,12 @@ export default {
   name: "Collections",
   components: { ArgonButton, AddEditQuartet },
   setup() {
-    const { isLoadingQuarters, quarters, requestGetQuartres } = useQuarters();
+    const {
+      isLoadingQuarters,
+      quarters,
+      requestGetTerms,
+      requestGetTermsStatuses,
+    } = useQuarters();
 
     const { formatDateDMY } = useFormatDate();
 
@@ -93,7 +88,7 @@ export default {
 
     const onAcceptModal = () => {
       showModal.value = false;
-      requestGetQuartres();
+      requestGetTerms();
     };
 
     const onEditQuarter = (row) => {
@@ -103,7 +98,8 @@ export default {
 
     //lifecycle
     onMounted(() => {
-      requestGetQuartres();
+      requestGetTerms();
+      requestGetTermsStatuses();
     });
 
     return {

@@ -29,7 +29,16 @@
 
         <div v-show="formModel.program_id" class="row">
           <div class="col-4">
-            <el-form-item label="Monto Total a Estudiantes" prop="amount">
+            <el-form-item prop="amount">
+              <template #label>
+                Monto Total
+
+                <el-tooltip
+                  content="El monto total sera dividido entre los estudiantes seleccionados"
+                >
+                  <i class="fas fa-info-circle" />
+                </el-tooltip>
+              </template>
               <el-input
                 v-model.number="formModel.amount"
                 type="number"
@@ -92,8 +101,13 @@
                 :data="studentToTransfer"
                 filterable
                 filter-placeholder="Estudiante"
-                :titles="['Estudiantes', 'Seleccionados']"
-              />
+                :titles="['Estudiantes', 'Estudiantes Seleccionados']"
+                class="w-100 custom-transfer"
+              >
+                <template #default="{ option }">
+                  <span>{{ option.label }} </span>
+                </template>
+              </el-transfer>
             </el-form-item>
           </div>
         </div>
@@ -115,7 +129,12 @@ import { computed, onMounted, ref, reactive, watch } from "vue";
 import { ElMessage } from "element-plus";
 import { ArgonButton, Modal } from "@/components";
 
-import { useStudents, useFormatDate, usePayments } from "@/composables";
+import {
+  useStudents,
+  useFormatDate,
+  usePayments,
+  useGrades,
+} from "@/composables";
 
 import errorMessages from "@/constants/formErrorMessages";
 import { paymentMethodsArray } from "@/constants/paymentMethod";
@@ -136,8 +155,10 @@ export default {
   setup(_, { emit }) {
     const requiredMessage = errorMessages.required;
     //instances
-    const { programs, studentsListWithFilters, requestGetStudentListFiltered } =
+    const { studentsListWithFilters, requestGetStudentListFiltered } =
       useStudents();
+
+    const { programs, requestGetPrograms } = useGrades();
 
     const { requestPostGlobalStudentsPayment } = usePayments();
 
@@ -159,6 +180,7 @@ export default {
 
     const studentToTransfer = computed(() => {
       return studentsListWithFilters.value.map((student) => ({
+        ...student,
         key: student.student_id,
         label: `${student.first_name} ${student.last_name}`,
       }));
@@ -258,7 +280,9 @@ export default {
       }
     );
 
-    onMounted(() => {});
+    onMounted(async () => {
+      await Promise.all([requestGetPrograms()]);
+    });
 
     return {
       formModel,
@@ -272,7 +296,30 @@ export default {
       paymentMethodsArray,
       paymentMethods,
       disabledReferenceNumber,
+      studentsListWithFilters,
     };
   },
 };
 </script>
+
+<style scoped>
+.custom-transfer :deep(.el-transfer-panel) {
+  width: 40% !important;
+  min-width: 200px;
+}
+
+.custom-transfer :deep(.el-transfer__buttons) {
+  padding: 0 20px;
+}
+
+@media (max-width: 768px) {
+  .custom-transfer :deep(.el-transfer-panel) {
+    width: 100% !important;
+    margin-bottom: 10px;
+  }
+
+  .custom-transfer :deep(.el-transfer) {
+    flex-direction: column;
+  }
+}
+</style>

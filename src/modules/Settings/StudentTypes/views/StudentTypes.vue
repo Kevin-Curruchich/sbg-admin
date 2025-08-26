@@ -24,16 +24,9 @@
             :data="studentTypes"
             style="width: 100%"
           >
-            <el-table-column label="Nombre">
-              <template #default="{ row }">
-                <span>{{ row.studentTypeName }}</span>
-              </template>
-            </el-table-column>
-            <el-table-column label="Descripción">
-              <template #default="{ row }">
-                <span>{{ row.studentTypeDesc }}</span>
-              </template>
-            </el-table-column>
+            <el-table-column label="Programa" prop="programs.name" />
+            <el-table-column label="Nombre" prop="name" />
+            <el-table-column label="Descripción" prop="description" />
           </el-table>
         </div>
         <div class="mt-4 d-flex justify-content-end">
@@ -50,7 +43,7 @@
   </div>
   <add-edit-student-type
     :show-modal="showModal"
-    @hidde-modal="OnHiddeModal"
+    @hidde-modal="onHideModal"
     @accept-modal="onAcceptModal"
   />
 </template>
@@ -78,7 +71,7 @@ export default {
       showModal.value = true;
     };
 
-    const OnHiddeModal = () => {
+    const onHideModal = () => {
       showModal.value = false;
     };
 
@@ -87,7 +80,7 @@ export default {
     };
 
     const onAcceptModal = () => {
-      OnHiddeModal();
+      onHideModal();
       requestGetStudentTypes();
     };
 
@@ -102,7 +95,7 @@ export default {
       onOpenModal,
       showModal,
       studentTypes,
-      OnHiddeModal,
+      onHideModal,
       onAcceptModal,
     };
   },

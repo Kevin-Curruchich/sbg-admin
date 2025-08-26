@@ -7,7 +7,10 @@ export const requestDownloadCollectionHistoryByStudent = async (
   return new Promise((resolve, reject) => {
     commit("setIsDownloadReportByStudent", true);
     sbgApi
-      .get(`/reports/students/${studentId}`, { params, responseType: "blob" })
+      .get(`/charges/student/${studentId}/report`, {
+        params,
+        responseType: "blob",
+      })
       .then((response) => {
         commit("setIsDownloadReportByStudent", false);
         resolve(response);
@@ -45,7 +48,7 @@ export const requestDownloadStudentsPersonalData = async ({ commit }) => {
   return new Promise((resolve, reject) => {
     commit("setIsDownloadingStudentsPersonalData", true);
     sbgApi
-      .get(`/reports/all-students`, {
+      .get(`/students/report`, {
         // params,
         responseType: "blob",
       })
@@ -83,7 +86,7 @@ export const requestDownloadPaymentsReport = async ({ commit }, { params }) => {
   return new Promise((resolve, reject) => {
     commit("setIsDownloadingPaymentsReport", true);
     sbgApi
-      .get(`/reports/payments`, { params, responseType: "blob" })
+      .get(`/payments/report`, { params, responseType: "blob" })
       .then((response) => {
         commit("setIsDownloadingPaymentsReport", false);
         resolve(response);

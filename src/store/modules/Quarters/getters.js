@@ -13,3 +13,11 @@ export const getQuartersList = (state) => {
 export const getQuartersByStudent = (state) => {
   return state.setQuartersByStudent;
 };
+
+export const getTermsStatuses = (state) => {
+  return state.termsStatuses;
+};
+
+export const getIsLoadingTermsStatuses = (state) => {
+  return state.isLoadingTermsStatuses;
+};

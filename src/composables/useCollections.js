@@ -8,12 +8,25 @@ export default function useCollection() {
   const collectionsList = computed(
     () => store.getters["collections/getCollectionsList"]
   );
+
+  const collections = computed(
+    () => store.getters["collections/getCollections"]
+  );
+
   const isLoadingCollections = computed(
     () => store.getters["collections/getIsLoadingCollections"]
   );
 
+  const isLoadingCollectionList = computed(
+    () => store.getters["collections/getIsLoadingCollectionList"]
+  );
+
   const collectionTypes = computed(
     () => store.getters["collections/getCollectionTypes"]
+  );
+
+  const isLoadingCollectionTypes = computed(
+    () => store.getters["collections/getIsLoadingCollectionTypes"]
   );
 
   const assignedCollections = computed(
@@ -45,9 +58,21 @@ export default function useCollection() {
     await store.dispatch("collections/requestGetCollectionsList", { params });
   };
 
+  const requestGetCollections = async (params = { page: 1, take: 10 }) => {
+    await store.dispatch("collections/requestGetCollections", params);
+  };
+
   const requestGetCollectionTypes = async () => {
     await store.dispatch("collections/requestGetCollectionTypes");
   };
+
+  const requestChargeFrequency = async () => {
+    await store.dispatch("collections/requestChargeFrequency");
+  };
+
+  const chargesFrequency = computed(
+    () => store.getters["collections/getChargesFrequency"]
+  );
 
   const requestGetCollectionStatuses = async () => {
     await store.dispatch("collections/requestGetCollectionStatuses");
@@ -176,15 +201,18 @@ export default function useCollection() {
     collectionTypes,
     isLoadingAssignedCollections,
     isLoadingCollections,
+    isLoadingCollectionList,
     isLoadingCollectionsByStudent,
     isLoadingCollectionsOwedByStudent,
     putCollection,
     putCollectionStudent,
     requestGetAssignedCollections,
     requestGetCollectionsList,
+    requestGetCollections,
     requestGetCollectionsByStudent,
     requestGetCollectionsOwedByStudent,
     requestGetCollectionTypes,
+    isLoadingCollectionTypes,
     requestPostCollection,
     requestPostCollectionStudent,
     requestPostCollectionStudents,
@@ -194,5 +222,9 @@ export default function useCollection() {
     collectionStatuses,
     requestGetStudentBalance,
     studentBalance,
+    collections,
+
+    requestChargeFrequency,
+    chargesFrequency,
   };
 }

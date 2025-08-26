@@ -1,5 +1,5 @@
 export const setIsDownloadReportByStudent = (state, val) => {
-  state.isDownlodReportByStudent = val;
+  state.isDownloadingStudentChargesReport = val;
 };
 
 export const setIsDownloadingReportByYear = (state, val) => {

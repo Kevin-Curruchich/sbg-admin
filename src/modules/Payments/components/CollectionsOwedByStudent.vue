@@ -11,7 +11,7 @@
           <el-option
             v-for="collection in collectionsOwedByStudent"
             :key="collection.charge_id"
-            :label="collection.charge_types.name"
+            :label="`${collection.charge_types.name} (${collection.totalAmountDueFormatted})`"
             :value="collection.charge_id"
           />
         </el-select>
@@ -68,7 +68,7 @@
                 </el-form-item>
               </template>
             </el-table-column>
-            <el-table-column label="Saldo" min-width="100">
+            <el-table-column label="Saldo Pendiente" min-width="100">
               <template #default="{ row }">
                 {{ row.totalAmountDue - row.paymentAmount }}
               </template>

@@ -5,7 +5,7 @@
         <table class="table table-sm" style="width: 100%">
           <thead>
             <tr>
-              <th class="text-center">Total Por Cobrar</th>
+              <th class="text-center">Saldo Pendiente</th>
               <th v-if="studentBalance?.studentHasCredit" class="text-center">
                 Saldo a Favor
               </th>
@@ -18,6 +18,16 @@
               </td>
               <td v-if="studentBalance?.studentHasCredit" class="text-center">
                 <b>{{ studentBalance?.studentCreditFormatted }}</b>
+                <el-button
+                  v-if="studentBalance?.studentHasCredit"
+                  class="ms-2"
+                  circle
+                  size="small"
+                  icon
+                  @click="onConfirmCleanPositiveCredit"
+                >
+                  <i class="fas fa-broom" />
+                </el-button>
               </td>
             </tr>
           </tbody>
@@ -65,7 +75,7 @@
       <div class="col-md-2 col-sm-6 d-flex align-items-end justify-content-end">
         <el-button
           v-if="userIsAdmin"
-          :loading="isDownlodReportByStudent"
+          :loading="isDownloadingStudentChargesReport"
           @click="onDownloadReport"
         >
           Descargar <i class="fas fa-file-download mx-2"></i>
@@ -151,6 +161,32 @@
     <div class="row" else>
       <div class="col-sm-12"></div>
     </div>
+
+    <el-dialog
+      v-model="confirmCleanPositiveCredit"
+      title="Limpiar Saldo a favor"
+    >
+      El Sistema tomará el saldo a favor del estudiante y lo aplicará a los
+      cobros pendientes que puedan ser solventados o realizar pagos parciales si
+      el saldo a favor no es suficiente.
+      <br />
+
+      <br />
+      ¿Desea continuar?
+
+      <template #footer>
+        <el-button @click="confirmCleanPositiveCredit = false"
+          >Cancelar</el-button
+        >
+        <el-button
+          type="primary"
+          :loading="isLoadingSpreadStudentPositiveCredit"
+          @click="onSpreadStudentPositiveCredit"
+        >
+          Limpiar
+        </el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -165,12 +201,14 @@ import {
   useStudent,
   useAuth,
 } from "@/composables";
+
 export default {
   setup() {
     const route = useRoute();
 
     const { id } = route.params;
-    const { onNavigateToPayment } = usePayments();
+    const { onNavigateToPayment, requestSpreadStudentPositiveCredit } =
+      usePayments();
     const { userIsAdmin } = useAuth();
 
     const {
@@ -187,17 +225,29 @@ export default {
 
     const {
       requestDownloadCollectionHistoryByStudent,
-      isDownlodReportByStudent,
+      isDownloadingStudentChargesReport,
     } = useReports();
     const { student } = useStudent();
 
+    const routeQueryParams = computed(() => {
+      return {
+        charge_status_id: route.query.charge_status_id || null,
+        due_date: route.query.due_date || null,
+      };
+    });
+
     //ref
-    const charge_status_id = ref("");
+    const charge_status_id = ref(routeQueryParams.value.charge_status_id || "");
     const due_date = ref("");
+    const confirmCleanPositiveCredit = ref(false);
+    const isLoadingSpreadStudentPositiveCredit = ref(false);
 
     const params = computed(() => {
       return {
-        charge_status_id: charge_status_id.value || null,
+        charge_status_id:
+          routeQueryParams.value.charge_status_id ||
+          charge_status_id.value ||
+          null,
         due_date: due_date.value || null,
       };
     });
@@ -225,6 +275,26 @@ export default {
       requestGetCollectionsByStudent(id, params.value);
     };
 
+    const onConfirmCleanPositiveCredit = async () => {
+      confirmCleanPositiveCredit.value = true;
+    };
+
+    const onSpreadStudentPositiveCredit = async () => {
+      isLoadingSpreadStudentPositiveCredit.value = true;
+      try {
+        const response = await requestSpreadStudentPositiveCredit(id);
+        console.log({ response });
+
+        onNavigateToPayment(response.paymentCreated.payment_id);
+
+        confirmCleanPositiveCredit.value = false;
+      } catch (error) {
+        console.error(error);
+      } finally {
+        isLoadingSpreadStudentPositiveCredit.value = false;
+      }
+    };
+
     //lifecycle
     onMounted(() => {
       requestGetCollectionStatuses();
@@ -236,7 +306,7 @@ export default {
       collectionId,
       collectionsByStudent,
       formatDateDMY,
-      isDownlodReportByStudent,
+      isDownloadingStudentChargesReport,
       isLoadingCollectionsByStudent,
       onDownloadReport,
       onFilterHistory,
@@ -247,6 +317,10 @@ export default {
       formatDateDm,
       studentBalance,
       due_date,
+      onConfirmCleanPositiveCredit,
+      confirmCleanPositiveCredit,
+      isLoadingSpreadStudentPositiveCredit,
+      onSpreadStudentPositiveCredit,
     };
   },
 };

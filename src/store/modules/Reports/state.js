@@ -1,5 +1,5 @@
 export default () => ({
-  isDownlodReportByStudent: false,
+  isDownloadingStudentChargesReport: false,
   isDownloadingReportByYear: false,
   isDownloadingStudentsPersonalData: false,
   paymentsReport: { data: [], total: 0 },

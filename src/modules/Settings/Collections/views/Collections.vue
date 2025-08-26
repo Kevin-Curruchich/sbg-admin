@@ -2,12 +2,10 @@
   <div class="py-3 container-fluid">
     <div class="row">
       <div class="col-12">
-        <!-- <div class="card"> -->
-        <!-- Card header -->
         <div class="pb-0 card-header">
           <div class="d-lg-flex">
             <div>
-              <h5 class="mb-0">Cobros</h5>
+              <h5 class="mb-0">Configuración Cobros</h5>
             </div>
             <div class="my-auto mt-4 ms-auto mt-lg-0">
               <div class="my-auto ms-auto">
@@ -23,35 +21,32 @@
           </div>
         </div>
         <div class="px-0 pb-0 card-body">
-          <el-table v-loading="isLoadingCollections" :data="collections">
-            <el-table-column label="Nombre">
+          <el-table
+            v-loading="isLoadingCollectionTypes"
+            :data="collectionTypes.data"
+          >
+            <el-table-column label="Nombre" prop="name" />
+            <el-table-column
+              label="Descripcion"
+              prop="description"
+              min-width="110px"
+            />
+            <el-table-column label="Programa">
               <template #default="{ row }">
-                {{ row.collectionName }}
+                {{ row?.programs?.name || "N/A" }}
               </template>
             </el-table-column>
-            <el-table-column label="Tipo de estudiate">
+            <el-table-column label="Frecuencia">
               <template #default="{ row }">
-                <ul>
-                  <li
-                    v-for="item in row.collectionStudentApply"
-                    :key="item.studentTypeId"
-                  >
-                    {{ getStudentTypeName(item.studentTypeId) }}
-                  </li>
-                </ul>
-              </template>
-            </el-table-column>
-            <el-table-column label="Tipo de cobro">
-              <template #default="{ row }">
-                {{ row.collectionType?.collectionTypeName }}
+                {{ row?.frequency?.name || "Todos" }}
               </template>
             </el-table-column>
             <el-table-column label="Monto base">
               <template #default="{ row }">
-                {{ `Q. ${row.collectionBaseAmount}` }}
+                {{ `Q. ${row.default_amount || 0}` }}
               </template>
             </el-table-column>
-            <el-table-column label="Acciones">
+            <el-table-column width="80px">
               <template #default="{ row }">
                 <el-button size="small" @click="onEditCollection(row)">
                   <i class="fas fa-edit"></i>
@@ -61,21 +56,20 @@
           </el-table>
         </div>
         <div class="mt-4 d-flex justify-content-end">
-          <!-- <el-pagination
+          <el-pagination
             background
             layout="prev, pager, next"
             :total="total"
             @current-change="onChangePage"
-          /> -->
+          />
         </div>
-        <!-- </div> -->
       </div>
     </div>
   </div>
   <AddEditCollection
     :show-modal="showModal"
     :row-selected="rowSelected"
-    @hidde-modal="onHiddeModal"
+    @hidde-modal="onHideModal"
     @accept-modal="onAcceptModal"
   />
 </template>
@@ -91,8 +85,11 @@ export default {
   components: { ArgonButton, AddEditCollection },
   setup() {
     ArgonButton; //instances
-    const { isLoadingCollections, collections, requestGetCollectionsList } =
-      useCollections();
+    const {
+      isLoadingCollectionTypes,
+      collectionTypes,
+      requestGetCollectionTypes,
+    } = useCollections();
     const { getStudentTypeName } = useStudents();
 
     //refs
@@ -104,7 +101,7 @@ export default {
       rowSelected.value = row;
       showModal.value = true;
     };
-    const onHiddeModal = () => {
+    const onHideModal = () => {
       showModal.value = false;
       rowSelected.value = null;
     };
@@ -112,22 +109,22 @@ export default {
     const onAcceptModal = () => {
       showModal.value = false;
       rowSelected.value = null;
-      requestGetCollectionsList();
+      requestGetCollectionTypes();
     };
 
     //lifecycle
     onMounted(() => {
-      requestGetCollectionsList();
+      requestGetCollectionTypes();
     });
 
     //returns
     return {
-      collections,
+      collectionTypes,
       getStudentTypeName,
-      isLoadingCollections,
+      isLoadingCollectionTypes,
       onAcceptModal,
       onEditCollection,
-      onHiddeModal,
+      onHideModal,
       showModal,
       rowSelected,
     };

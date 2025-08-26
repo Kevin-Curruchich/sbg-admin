@@ -144,3 +144,31 @@ export const requestPutStudent = async (_, { studentId, data }) => {
       });
   });
 };
+
+export const requestActivateStudent = async (_, studentId) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .put(`/students/${studentId}/activate`)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        reject(error);
+      });
+  });
+};
+
+export const requestInactivateStudent = async (_, studentId) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .put(`/students/${studentId}/inactivate`)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        reject(error);
+      });
+  });
+};

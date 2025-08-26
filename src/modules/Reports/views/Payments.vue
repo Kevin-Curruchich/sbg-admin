@@ -100,7 +100,7 @@ export default {
 
     const {
       requestGetPaymentsReport,
-      requestDownloadPaymentsReport,
+
       paymentsReport,
       isLoadingPaymentsReport,
       isDownloadingPaymentsReport,
@@ -127,22 +127,6 @@ export default {
 
     //methods
 
-    const onExportReport = async () => {
-      const params = {
-        searchQuery: searchQuery.value || null,
-        payment_date: formatDateYM(payment_date.value),
-      };
-
-      await requestDownloadPaymentsReport(params).then((response) => {
-        const url = window.URL.createObjectURL(new Blob([response.data]));
-        const link = document.createElement("a");
-        link.href = url;
-        link.setAttribute("download", `Reporte_Aportes.xlsx`);
-        document.body.appendChild(link);
-        link.click();
-      });
-    };
-
     const onFilter = async () => {
       await requestGetPaymentsReport(params.value);
     };
@@ -166,7 +150,6 @@ export default {
       paymentsReport,
       isLoadingPaymentsReport,
       isDownloadingPaymentsReport,
-      onExportReport,
       onFilter,
       getPaymentsId,
     };

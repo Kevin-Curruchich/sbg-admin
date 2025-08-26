@@ -1,5 +1,5 @@
 export const getIsDownloadReportByStudent = (state) => {
-  return state.isDownlodReportByStudent;
+  return state.isDownloadingStudentChargesReport;
 };
 
 export const getIsDownloadingReportByYear = (state) => {

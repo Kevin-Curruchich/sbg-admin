@@ -1,6 +1,6 @@
 export default () => ({
+  isLoadingCollectionList: false,
   collectionsList: [],
-  isLoadingCollection: false,
   assignedCollections: [],
   isLoadingAssignedCollections: false,
   collectionTypes: [],
@@ -11,4 +11,7 @@ export default () => ({
   isLoadingCollectionsByStudent: false,
   collectionStatuses: [],
   studentBalance: {},
+  isLoadingCollection: false,
+  collections: { data: [], total: 0 },
+  chargesFrequency: [],
 });

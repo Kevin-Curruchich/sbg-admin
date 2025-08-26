@@ -1,7 +1,7 @@
 <template>
   <modal scrollable :show="showModal" size="lg" :on-hide-modal="onHideModal">
     <template #header>
-      {{ `${props.rowSelected ? "Editar" : "Crear"} Trimestre` }}
+      {{ `${props.rowSelected ? "Editar" : "Crear"} Ciclo` }}
     </template>
     <template #body>
       <el-form
@@ -13,18 +13,18 @@
       >
         <div class="row">
           <div class="col-md-6">
-            <el-form-item label="Nombre Trimestre" prop="quartetlyName">
+            <el-form-item label="Nombre Trimestre" prop="term_name">
               <el-input
-                v-model="formModel.quartetlyName"
-                placeholder="Nombre Trimestre"
+                v-model="formModel.term_name"
+                placeholder="I Semestre/Trimestre 2025"
               />
             </el-form-item>
           </div>
           <div class="col-md-6"></div>
           <div class="col-md-6">
-            <el-form-item label="Fecha Inicio" prop="quartetlyStart">
+            <el-form-item label="Fecha Inicio" prop="start_date">
               <el-date-picker
-                v-model="formModel.quartetlyStart"
+                v-model="formModel.start_date"
                 placeholder="Fecha Inicio"
                 format="DD/MM/YYYY"
                 style="width: 100%"
@@ -32,9 +32,9 @@
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Fecha Final" prop="quartetlyEnd">
+            <el-form-item label="Fecha Final" prop="end_date">
               <el-date-picker
-                v-model="formModel.quartetlyEnd"
+                v-model="formModel.end_date"
                 placeholder="Fecha Final"
                 format="DD/MM/YYYY"
                 style="width: 100%"
@@ -42,23 +42,27 @@
             </el-form-item>
           </div>
           <div v-if="props.rowSelected" class="col-md-6">
-            <el-form-item label="Estado" prop="quartetlyIsActive">
-              <el-switch
-                v-model="formModel.quartetlyIsActive"
-                active-color="#13ce66"
-                inactive-color="#ff4949"
-                active-text="Activo"
-                inactive-text="Inactivo"
-              />
+            <el-form-item label="Estado" prop="term_status_id">
+              <el-select
+                v-model="formModel.term_status_id"
+                placeholder="Seleccionar Estado"
+              >
+                <el-option
+                  v-for="status in termsStatuses"
+                  :key="status.term_status_id"
+                  :label="status.name"
+                  :value="status.term_status_id"
+                />
+              </el-select>
             </el-form-item>
           </div>
         </div>
       </el-form>
     </template>
     <template #footer>
-      <argon-button variant="outline" @click="onHideModal"
-        >Cancelar</argon-button
-      >
+      <argon-button variant="outline" @click="onHideModal">
+        Cancelar
+      </argon-button>
       <argon-button :loading="lockModal" @click="onSubmit">
         {{ props.rowSelected ? "Editar" : "Agregar" }}
       </argon-button>
@@ -89,25 +93,26 @@ export default {
   },
   emits: ["hidde-modal", "accept-modal"],
   setup(props, { emit }) {
-    const requiredMesage = errorMessages.required;
+    const requiredMessage = errorMessages.required;
+
     //instances
-    const { requestPostQuarters, requestPutQuarters } = useQuarters();
+    const { requestPostTerm, requestPutTerm, termsStatuses } = useQuarters();
     const { formatDateYMD } = useFormatDate();
 
     //refs
     const lockModal = ref(false);
     const formRef = ref(null);
     const formModel = ref({
-      quartetlyName: "",
-      quartetlyStart: "",
-      quartetlyEnd: "",
-      quartetlyIsActive: true,
+      term_name: "",
+      start_date: "",
+      end_date: "",
+      term_status_id: "",
     });
 
     const rules = ref({
-      quartetlyName: [{ required: true, message: requiredMesage }],
-      quartetlyStart: [{ required: true, message: requiredMesage }],
-      quartetlyEnd: [{ required: true, message: requiredMesage }],
+      term_name: [{ required: true, message: requiredMessage }],
+      start_date: [{ required: true, message: requiredMessage }],
+      end_date: [{ required: true, message: requiredMessage }],
     });
 
     //methods
@@ -126,19 +131,15 @@ export default {
         if (!isValid) return;
         lockModal.value = true;
 
-        formModel.value.quartetlyStart = formatDateYMD(
-          formModel.value.quartetlyStart
-        );
-        formModel.value.quartetlyEnd = formatDateYMD(
-          formModel.value.quartetlyEnd
-        );
+        formModel.value.start_date = formatDateYMD(formModel.value.start_date);
+        formModel.value.end_date = formatDateYMD(formModel.value.end_date);
 
         const data = { ...formModel.value };
 
         if (props.rowSelected) {
-          const id = props.rowSelected.quartetlyId;
+          const id = props.rowSelected.term_id;
 
-          requestPutQuarters({ id, data })
+          requestPutTerm({ id, data })
             .then(() => {
               onClearData();
               emit("accept-modal");
@@ -147,9 +148,13 @@ export default {
               lockModal.value = false;
             });
         } else {
-          delete data.quartetlyIsActive;
+          const termData = {
+            term_name: data.term_name,
+            start_date: data.start_date,
+            end_date: data.end_date,
+          };
 
-          requestPostQuarters(formModel.value)
+          requestPostTerm(termData)
             .then(() => {
               onClearData();
               emit("accept-modal");
@@ -166,10 +171,10 @@ export default {
       () => props.rowSelected,
       (value) => {
         if (value) {
-          formModel.value.quartetlyName = value.quartetlyName;
-          formModel.value.quartetlyStart = value.quartetlyStart;
-          formModel.value.quartetlyEnd = value.quartetlyEnd;
-          formModel.value.quartetlyIsActive = value.quartetlyIsActive;
+          formModel.value.term_name = value.term_name;
+          formModel.value.start_date = value.start_date;
+          formModel.value.end_date = value.end_date;
+          formModel.value.term_status_id = value.term_status_id;
         }
       }
     );
@@ -185,9 +190,8 @@ export default {
       rules,
       lockModal,
       props,
+      termsStatuses,
     };
   },
 };
 </script>
-
-<style></style>

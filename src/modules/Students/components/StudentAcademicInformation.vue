@@ -10,6 +10,14 @@
     </template>
 
     <el-table v-loading="isLadingStudentPrograms" :data="programsByStudent">
+      <el-table-column type="expand" lazy>
+        <template #default="{ row }">
+          <student-program-levels
+            :student-id="studentId"
+            :program-id="row.programs.program_id"
+          />
+        </template>
+      </el-table-column>
       <el-table-column prop="programs.name" label="Programa" />
       <el-table-column prop="student_types.name" label="Tipo de estudiante" />
       <el-table-column prop="student_program_code" label="Carnet" />
@@ -29,10 +37,12 @@
 import { onMounted, ref } from "vue";
 import { useGrades } from "@/composables";
 import AddEditStudentProgram from "./AddEditStudentProgram.vue";
+import StudentProgramLevels from "./StudentProgramLevels.vue";
 
 export default {
   components: {
     AddEditStudentProgram,
+    StudentProgramLevels,
   },
   props: {
     studentId: {
@@ -81,7 +91,6 @@ export default {
       rowSelected,
       isLadingStudentPrograms,
       programsByStudent,
-
       onAcceptModal,
     };
   },

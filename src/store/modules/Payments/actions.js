@@ -55,6 +55,19 @@ export const requestPostPayments = async (_, params) => {
   });
 };
 
+export const requestSpreadStudentPositiveCredit = async (_, studentId) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .post(`/payments/spread-student-positive-balance/${studentId}`)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
 export const requestPostGlobalStudentsPayment = (_, data) => {
   return new Promise((resolve, reject) => {
     sbgApi
@@ -78,6 +91,19 @@ export const requestPostInvoiceMail = async (_, id) => {
       })
       .catch((error) => {
         console.log(error);
+        reject(error);
+      });
+  });
+};
+
+export const requestDeletePayment = async (_, paymentId) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .delete(`/payments/${paymentId}`)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
         reject(error);
       });
   });

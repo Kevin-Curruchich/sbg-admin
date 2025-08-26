@@ -18,9 +18,17 @@ const useQuarters = () => {
     () => store.getters["quarters/getQuartersByStudent"]
   );
 
+  const termsStatuses = computed(
+    () => store.getters["quarters/getTermsStatuses"] || []
+  );
+
+  const isLoadingTermsStatuses = computed(
+    () => store.getters["quarters/getIsLoadingTermsStatuses"]
+  );
+
   //methods
-  const requestGetQuartres = async (params = { page: 1, take: 10 }) => {
-    const resp = await store.dispatch("quarters/requestGetQuartres", params);
+  const requestGetTerms = async (params = { page: 1, take: 10 }) => {
+    const resp = await store.dispatch("quarters/requestGetTerms", params);
     return resp;
   };
 
@@ -33,18 +41,23 @@ const useQuarters = () => {
     return resp;
   };
 
-  const requestGetQuartresList = async () => {
-    const resp = await store.dispatch("quarters/requestGetQuartresList");
+  const requestGetTermsList = async () => {
+    const resp = await store.dispatch("quarters/requestGetTermsList");
     return resp;
   };
 
-  const requestPostQuarters = async (data) => {
-    const resp = await store.dispatch("quarters/requestPostQuarters", data);
+  const requestGetTermsStatuses = async () => {
+    const resp = await store.dispatch("quarters/requestGetTermsStatuses");
     return resp;
   };
 
-  const requestPutQuarters = async ({ data, id }) => {
-    const resp = await store.dispatch("quarters/requestPutQuarters", {
+  const requestPostTerm = async (data) => {
+    const resp = await store.dispatch("quarters/requestPostTerm", data);
+    return resp;
+  };
+
+  const requestPutTerm = async ({ data, id }) => {
+    const resp = await store.dispatch("quarters/requestPutTerm", {
       data,
       id,
     });
@@ -56,11 +69,14 @@ const useQuarters = () => {
     quarters,
     quartersByStudent,
     quartersList,
-    requestGetQuartres,
+    requestGetTerms,
     requestGetQuartresByStudent,
-    requestGetQuartresList,
-    requestPostQuarters,
-    requestPutQuarters,
+    requestGetTermsList,
+    requestPostTerm,
+    requestPutTerm,
+    termsStatuses,
+    isLoadingTermsStatuses,
+    requestGetTermsStatuses,
   };
 };
 

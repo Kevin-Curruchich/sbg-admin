@@ -5,6 +5,18 @@ export const setIsLoadingCollections = (state, val) => {
   state.isLoadingCollection = val;
 };
 
+export const setIsLoadingCollectionList = (state, val) => {
+  state.isLoadingCollectionList = val;
+};
+
+export const setCollections = (state, val) => {
+  state.collections = val;
+};
+
+export const setChargesFrequency = (state, val) => {
+  state.chargesFrequency = val;
+};
+
 export const setIsLoadingAssignedCollections = (state, val) => {
   state.isLoadingAssignedCollections = val;
 };

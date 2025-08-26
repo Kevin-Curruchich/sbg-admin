@@ -22,7 +22,7 @@
         v-if="userIsAdmin || userIsAcademic"
         :to="{ name: 'Collections List' }"
         mini-icon="CA"
-        text="Cobros Asignados"
+        text="Asignación de Cobros"
       >
         <template #icon>
           <i class="fas fa-dollar-sign"></i>
@@ -39,14 +39,14 @@
         </template>
       </sidenav-item>
 
-      <li v-if="userIsAdmin" class="mt-3 nav-item">
+      <li v-if="false && userIsAdmin" class="mt-3 nav-item">
         <h6 class="text-xs ps-4 text-uppercase font-weight-bolder opacity-6">
           Reportes
         </h6>
       </li>
 
       <sidenav-item
-        v-if="userIsAdmin"
+        v-if="false && userIsAdmin"
         :to="{ name: 'Payments Report' }"
         mini-icon="A"
         text="Reporte Aportes"
@@ -81,7 +81,7 @@
             <sidenav-item
               :to="{ name: 'Settings Quarters' }"
               mini-icon="T"
-              text="Trimestres"
+              text="Ciclos"
             />
           </ul>
         </template>

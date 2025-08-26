@@ -67,10 +67,24 @@
             </div>
 
             <div class="col-md-2">
-              <div class="h-100 d-flex align-items-end justify-content-end">
+              <div
+                class="h-100 d-flex align-items-end justify-content-end gap-1"
+              >
                 <argon-button :disabled="isLoadingPayments" @click="onFilter">
                   Filtrar
                   <i class="fas fa-filter"></i>
+                </argon-button>
+                <argon-button
+                  variant="outline"
+                  color="secondary"
+                  :disabled="
+                    isDownloadingPaymentsReport ||
+                    isLoadingPayments ||
+                    payments.total === 0
+                  "
+                  @click="onExportReport"
+                >
+                  <i class="fas fa-download"></i>
                 </argon-button>
               </div>
             </div>
@@ -101,22 +115,40 @@
               </template>
             </el-table-column>
 
-            <el-table-column label="Cobro Abonado" min-width="180px">
+            <el-table-column label="Descripción" min-width="180px">
               <template #default="{ row }">
                 <ul>
-                  <li
-                    v-for="item in row?.payment_details"
-                    :key="item.collection_id"
-                  >
-                    {{ item?.charges.charge_types.name }}:
-                    {{ item?.applied_amount }}
-                  </li>
+                  <template v-if="row.donation_id">
+                    Donación: {{ row.amountFormatted }}
+                  </template>
+                  <template v-else>
+                    <li
+                      v-for="item in row?.payment_details"
+                      :key="item.collection_id"
+                    >
+                      {{ item?.charges.charge_types.name }}
+                      ({{ item?.due_date_formatted }}):
+                      {{ item?.applied_amount }}
+                    </li>
+                  </template>
                 </ul>
               </template>
             </el-table-column>
-            <el-table-column label="Fecha " width="120px">
+            <el-table-column label="Fecha" width="120px">
               <template #default="{ row }">
                 {{ row?.payment_date }}
+              </template>
+            </el-table-column>
+            <el-table-column width="80px">
+              <template #default="{ row }">
+                <el-button
+                  v-if="!row.donation_id"
+                  icon
+                  size="small"
+                  @click="onDeletePayment(row)"
+                >
+                  <i class="fas fa-trash"></i>
+                </el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -131,7 +163,6 @@
             :page-size="pagination.take"
           />
         </div>
-        <!-- </div> -->
       </div>
     </div>
   </div>
@@ -145,18 +176,35 @@
     @hidde-modal="onCloseModal"
     @accept-modal="onAcceptModal"
   />
+  <payment-details
+    :payment-data="selectedPayment"
+    :show-modal="showModalPaymentDetails"
+    @hide-modal="onCloseModal"
+    @payment_deleted="onAcceptModal"
+  />
 </template>
 
 <script>
 import { computed, onMounted, reactive, ref, watch } from "vue";
-import { usePayments, useFormatDate, useStudents } from "@/composables";
+import {
+  usePayments,
+  useFormatDate,
+  useStudents,
+  useReports,
+} from "@/composables";
 import ArgonButton from "@/components/ArgonButton.vue";
 import AddEditPayment from "../components/AddEditPayment.vue";
 import AddDonationToStudents from "../components/AddDonationToStudents.vue";
+import PaymentDetails from "../components/PaymentDetails.vue";
 
 export default {
   name: "Payments",
-  components: { ArgonButton, AddEditPayment, AddDonationToStudents },
+  components: {
+    ArgonButton,
+    AddEditPayment,
+    AddDonationToStudents,
+    PaymentDetails,
+  },
   setup() {
     //instances
     const {
@@ -168,9 +216,12 @@ export default {
     } = usePayments();
     const { formatDateDMY, formatDateDMYH } = useFormatDate();
     const { programLevels } = useStudents();
+    const { requestDownloadPaymentsReport, isDownloadingPaymentsReport } =
+      useReports();
 
     //refs
     const showModal = ref(false);
+    const showModalPaymentDetails = ref(false);
     const showModalDonations = ref(false);
     const pagination = reactive({
       page: 1,
@@ -178,6 +229,8 @@ export default {
     });
     const search = ref("");
     const payment_date = ref("");
+
+    const selectedPayment = ref(null);
 
     //computed
     const queryParams = computed(() => ({
@@ -189,6 +242,12 @@ export default {
     }));
 
     //methods
+
+    const onDeletePayment = async (payment) => {
+      showModalPaymentDetails.value = true;
+      selectedPayment.value = payment;
+    };
+
     const onFilter = async () => {
       await requestGetPayments(queryParams.value);
     };
@@ -201,12 +260,34 @@ export default {
     const onCloseModal = () => {
       showModal.value = false;
       showModalDonations.value = false;
+      showModalPaymentDetails.value = false;
+      selectedPayment.value = null;
     };
 
     const onAcceptModal = () => {
       showModal.value = false;
       showModalDonations.value = false;
+      showModalPaymentDetails.value = false;
+      selectedPayment.value = null;
       requestGetPayments();
+    };
+
+    const onExportReport = async () => {
+      const params = {
+        searchQuery: search.value || null,
+        payment_date_start:
+          (payment_date.value && payment_date.value[0]) || null,
+        payment_date_end: (payment_date.value && payment_date.value[1]) || null,
+      };
+
+      await requestDownloadPaymentsReport(params).then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement("a");
+        link.href = url;
+        link.setAttribute("download", `Reporte_Aportes.xlsx`);
+        document.body.appendChild(link);
+        link.click();
+      });
     };
 
     watch(
@@ -238,6 +319,11 @@ export default {
       payment_date,
       programLevels,
       pagination,
+      onExportReport,
+      isDownloadingPaymentsReport,
+      onDeletePayment,
+      selectedPayment,
+      showModalPaymentDetails,
     };
   },
 };

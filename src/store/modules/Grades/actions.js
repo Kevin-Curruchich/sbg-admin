@@ -64,3 +64,36 @@ export const requestGetProgramLevels = async ({ commit }, programId) => {
       });
   });
 };
+
+export const requestGetStudentProgramLevels = async (
+  _,
+  { studentId, programId }
+) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .get(`/grades/student/${studentId}/program/${programId}/levels`)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+        reject(error);
+      });
+  });
+};
+
+export const requestPostStudentProgramLevel = async (
+  _,
+  { studentId, data }
+) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .post(`/grades/student/${studentId}/program-level`, data)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};

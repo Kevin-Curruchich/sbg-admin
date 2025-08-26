@@ -5,8 +5,24 @@ export const getIsLoadingCollections = (state) => {
   return state.isLoadingCollection;
 };
 
+export const getIsLoadingCollectionList = (state) => {
+  return state.isLoadingCollectionList;
+};
+
+export const getCollections = (state) => {
+  return state.collections;
+};
+
+export const getChargesFrequency = (state) => {
+  return state.chargesFrequency;
+};
+
 export const getCollectionTypes = (state) => {
   return state.collectionTypes;
+};
+
+export const getIsLoadingCollectionTypes = (state) => {
+  return state.isLoadingCollectionTypes;
 };
 
 export const getAssignedCollections = (state) => {

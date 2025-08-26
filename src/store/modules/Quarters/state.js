@@ -3,4 +3,6 @@ export default () => ({
   isLoadingQuarters: true,
   quartersList: [],
   setQuartersByStudent: [],
+  termsStatuses: [],
+  isLoadingTermsStatuses: false,
 });

@@ -22,13 +22,13 @@
             </el-form-item>
           </div>
           <div class="col-md-6">
-            <el-form-item label="Tipo de cobro" prop="collectionTypeId">
+            <el-form-item label="Frecuencia" prop="collectionTypeId">
               <el-select v-model="formModel.collectionTypeId">
                 <el-option
-                  v-for="item in collectionTypes"
-                  :key="item.collectionTypeId"
-                  :value="item.collectionTypeId"
-                  :label="item.collectionTypeName"
+                  v-for="item in chargesFrequency"
+                  :key="item.frequency_id"
+                  :value="item.frequency_id"
+                  :label="item.name"
                 />
               </el-select>
             </el-form-item>
@@ -44,16 +44,21 @@
             </el-form-item>
           </div>
           <div class="col-md-12">
-            <el-form-item
-              label="Tipo de estudiantes"
-              prop="collectionStudentApply"
-            >
+            <el-form-item prop="collectionStudentApply">
+              <template #label>
+                Aplicar a programas
+                <el-tooltip
+                  content="Si el cobro aplica a todos los programas, no es necesario seleccionar ninguno"
+                >
+                  <i class="fas fa-info-circle" />
+                </el-tooltip>
+              </template>
               <el-select v-model="formModel.collectionStudentApply" multiple>
                 <el-option
-                  v-for="item in studentTypes"
-                  :key="item.studentTypeId"
-                  :value="item.studentTypeId"
-                  :label="item.studentTypeName"
+                  v-for="item in programs"
+                  :key="item.program_id"
+                  :value="item.program_id"
+                  :label="item.name"
                 />
               </el-select>
             </el-form-item>
@@ -83,10 +88,12 @@
 
 <script>
 import { onMounted, ref, watch } from "vue";
+
 import { ArgonButton, Modal } from "@/components";
-import { useStudents, useCollections } from "@/composables";
-import errorMessages from "@/constants/formErrorMessages";
 import { ElMessage } from "element-plus";
+
+import { useStudents, useCollections, useGrades } from "@/composables";
+import errorMessages from "@/constants/formErrorMessages";
 
 export default {
   components: {
@@ -108,11 +115,12 @@ export default {
     const requiredMesage = errorMessages.required;
     //instances
     const { studentTypes, requestGetStudentTypes } = useStudents();
+    const { programs, requestGetPrograms } = useGrades();
     const {
-      collectionTypes,
-      requestGetCollectionTypes,
+      chargesFrequency,
       requestPostCollection,
       putCollection,
+      requestChargeFrequency,
     } = useCollections();
 
     //refs
@@ -130,7 +138,6 @@ export default {
       collectionName: [{ required: true, message: requiredMesage }],
       collectionTypeId: [{ required: true, message: requiredMesage }],
       collectionBaseAmount: [{ required: true, message: requiredMesage }],
-      collectionStudentApply: [{ required: true, message: requiredMesage }],
     });
 
     //methods
@@ -206,12 +213,13 @@ export default {
 
     //lifecycle
     onMounted(() => {
-      requestGetCollectionTypes();
+      requestGetPrograms();
+      requestChargeFrequency();
       requestGetStudentTypes();
     });
 
     return {
-      collectionTypes,
+      chargesFrequency,
       formModel,
       formRef,
       onHideModal,
@@ -220,6 +228,7 @@ export default {
       sendingRequest,
       studentTypes,
       props,
+      programs,
     };
   },
 };

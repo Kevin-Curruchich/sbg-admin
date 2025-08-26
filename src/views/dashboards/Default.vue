@@ -60,7 +60,7 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-lg-7 mb-lg">
+          <div class="col-12 mb-lg">
             <gradient-line-chart
               id="chart-line"
               title="Aportes registrados"
@@ -74,26 +74,6 @@
                 ],
               }"
             />
-          </div>
-          <div class="col-lg-5">
-            <el-card shadow="never">
-              <el-table :data="dashboardData.tableWithStudentName">
-                <el-table-column label="Nombre">
-                  <template #default="scope">
-                    <span class="ml-2">{{
-                      scope.row.student.studentFullName
-                    }}</span>
-                  </template>
-                </el-table-column>
-                <el-table-column label="Cobros">
-                  <template #default="scope">
-                    <span class="ml-2">{{
-                      formatMoney(scope.row.collectionStudentAmountOwed)
-                    }}</span>
-                  </template>
-                </el-table-column>
-              </el-table>
-            </el-card>
           </div>
         </div>
       </div>

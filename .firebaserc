@@ -1,9 +1,19 @@
 {
   "projects": {
     "default": "sbg-admin",
-    "dev": "sbg-admin-dev",
     "develop": "sbg-admin-dev-3cb61"
   },
-  "targets": {},
+  "targets": {
+    "sbg-admin-dev-3cb61": {
+      "hosting": {
+        "main": [
+          "sbg-admin-dev-36cb61"
+        ],
+        "v2": [
+          "sbg-admin-dev-v2"
+        ]
+      }
+    }
+  },
   "etags": {}
 }

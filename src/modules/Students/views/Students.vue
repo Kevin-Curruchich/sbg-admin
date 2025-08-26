@@ -2,8 +2,6 @@
   <div class="py-3 container-fluid">
     <div class="row">
       <div class="col-12">
-        <!-- <div class="card"> -->
-        <!-- Card header -->
         <div class="pb-0 card-header">
           <div class="d-lg-flex">
             <div>
@@ -27,11 +25,25 @@
                       v-model="search"
                       clearable
                       type="text"
-                      placeholder="Buscar"
+                      placeholder="Nombre | Apellido | Correo"
                     />
                   </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
+                  <label class="form-label"> Programa </label>
+                  <div>
+                    <el-select v-model="studentProgramId" filterable clearable>
+                      <el-option label="Todos" value=""></el-option>
+                      <el-option
+                        v-for="item in programs"
+                        :key="item.program_id"
+                        :value="item.program_id"
+                        :label="item.name"
+                      />
+                    </el-select>
+                  </div>
+                </div>
+                <div class="col-md-2">
                   <label class="form-label"> Estado </label>
                   <div>
                     <el-select v-model="selectedStatus" filterable clearable>
@@ -48,21 +60,7 @@
                   </div>
                 </div>
 
-                <div class="col-md-5">
-                  <label class="form-label"> Programa </label>
-                  <div>
-                    <el-select v-model="studentProgramId" filterable clearable>
-                      <el-option label="Todos" value=""></el-option>
-                      <el-option
-                        v-for="item in programs"
-                        :key="item.program_id"
-                        :value="item.program_id"
-                        :label="item.name"
-                      />
-                    </el-select>
-                  </div>
-                </div>
-                <div class="col-md-3">
+                <div v-if="false" class="col-md-3">
                   <label class="form-label"> Tipo de estudiante </label>
                   <div>
                     <el-select
@@ -80,7 +78,7 @@
                     </el-select>
                   </div>
                 </div>
-                <div class="col-md-4">
+                <div v-if="false" class="col-md-4">
                   <label class="form-label"> Nivel </label>
                   <div>
                     <el-select v-model="programLevelId" filterable clearable>
@@ -164,8 +162,11 @@
             <el-table-column label="Estado" align="center" width="100px">
               <template #default="{ row }">
                 <el-tag
-                  :type="getStatusBadge(row.studentStatusId)"
-                  effect="dark"
+                  :type="
+                    getStudentStatusColor(
+                      row.student_statuses?.student_status_id
+                    )
+                  "
                 >
                   {{ row.student_statuses?.name }}
                 </el-tag>
@@ -199,9 +200,10 @@
 <script>
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
-import { useStudents, useReports } from "@/composables";
+import { useStudents, useReports, useGrades } from "@/composables";
 import ArgonButton from "@/components/ArgonButton.vue";
 import AddEditStudent from "../components/AddEditStudent.vue";
+import { getStudentStatusColor } from "../../../helpers/student-status";
 
 export default {
   name: "Students",
@@ -217,11 +219,8 @@ export default {
       studentTypes,
       isLoadingStudents,
       requestGetStudents,
-      getStatusBadge,
       programLevels,
       requestGetProgramLevels,
-      programs,
-      requestGetPrograms,
       requestGetStudentTypes,
     } = useStudents();
 
@@ -229,6 +228,8 @@ export default {
       isDownloadingStudentsPersonalData,
       requestDownloadStudentsPersonalData,
     } = useReports();
+
+    const { programs, requestGetPrograms } = useGrades();
 
     //ref
     const showModal = ref(false);
@@ -246,7 +247,7 @@ export default {
     const paramsGetStudents = computed(() => ({
       page: params.value.page,
       take: params.value.take,
-      searchQuery: search.value || null,
+      searchTerm: search.value || null,
       student_type_id: selectedStudentType.value || null,
       student_status_id: selectedStatus.value || null,
       program_id: studentProgramId.value || null,
@@ -315,7 +316,7 @@ export default {
     return {
       acceptModal,
       filter,
-      getStatusBadge,
+      getStudentStatusColor,
       hideModal,
       isLoadingStudents,
       onNavStudent,

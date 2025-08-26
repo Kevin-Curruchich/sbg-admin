@@ -11,16 +11,16 @@
       >
         <div class="row">
           <div class="col-md-6">
-            <el-form-item label="Tipo de estudiante" prop="studentTypeId">
+            <el-form-item label="Programa" prop="programId">
               <el-select
-                v-model="formModel.studentTypeId"
+                v-model="formModel.programId"
                 placeholder="Tipo de estudiante"
                 filterable
               >
                 <el-option
-                  v-for="studentType in studentTypes"
-                  :key="studentType.student_type_id"
-                  :value="studentType.student_type_id"
+                  v-for="studentType in programs"
+                  :key="studentType.program_id"
+                  :value="studentType.program_id"
                   :label="studentType.name"
                 />
               </el-select>
@@ -104,7 +104,12 @@
 
 <script>
 import { computed, onMounted, ref, watch } from "vue";
-import { useStudents, useCollections, useFormatDate } from "@/composables";
+import {
+  useStudents,
+  useCollections,
+  useFormatDate,
+  useGrades,
+} from "@/composables";
 import { ArgonButton, Modal } from "@/components";
 import errorMessages from "@/constants/formErrorMessages";
 
@@ -125,18 +130,19 @@ export default {
     //instances
 
     const {
-      requestGetStudentTypes,
-      studentTypes,
       requestGetStudentListFiltered,
       studentsListWithFilters,
       isLoadingStudentByStudentTypeId,
       onSetStudentListFiltered,
     } = useStudents();
+
     const {
       collectionsList,
       requestGetCollectionsList,
       requestPostCollectionStudents,
     } = useCollections();
+
+    const { programs, requestGetPrograms } = useGrades();
 
     const { formatDateYMD } = useFormatDate();
 
@@ -154,7 +160,7 @@ export default {
 
     const formRef = ref(null);
     const formModel = ref({
-      studentTypeId: "",
+      programId: "",
       collectionId: "",
       collectionStudentDate: "",
       collectionStudentAmountOwed: "",
@@ -163,7 +169,7 @@ export default {
     });
 
     const rules = ref({
-      studentTypeId: [{ required: true, message: requiredMessage }],
+      programId: [{ required: true, message: requiredMessage }],
       collectionId: [{ required: true, message: requiredMessage }],
       collectionStudentAmountOwed: [
         { required: true, message: requiredMessage },
@@ -225,21 +231,21 @@ export default {
 
     //watchers
     watch(
-      () => formModel.value.studentTypeId,
-      async (studentTypeId) => {
-        if (!studentTypeId) return;
+      () => formModel.value.programId,
+      async (programId) => {
+        if (!programId) return;
         lockModal.value = true;
         formModel.value.collectionId = "";
 
         formModel.value.collectionStudentAmountOwed = "";
 
         await requestGetStudentListFiltered({
-          student_type_id: studentTypeId,
+          program_id: programId,
         });
 
         await requestGetCollectionsList({
           params: {
-            student_type_id: studentTypeId,
+            program_id: programId,
           },
         });
 
@@ -262,8 +268,8 @@ export default {
     );
 
     //lifecycle
-    onMounted(() => {
-      requestGetStudentTypes();
+    onMounted(async () => {
+      await Promise.all([requestGetPrograms()]);
     });
 
     return {
@@ -273,12 +279,12 @@ export default {
       onSubmit,
       rules,
       lockModal,
-      studentTypes,
       studentsListWithFilters,
       isLoadingStudentByStudentTypeId,
       studentToTransfer,
       selectedStudents,
       collectionsList,
+      programs,
     };
   },
 };

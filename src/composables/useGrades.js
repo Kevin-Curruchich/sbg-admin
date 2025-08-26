@@ -65,6 +65,23 @@ export default function useGrades() {
     () => store.getters["grades/getStudentPrograms"]
   );
 
+  //GET STUDENT PROGRAM LEVELS FEATURE
+  const requestGetStudentProgramLevels = async ({ studentId, programId }) => {
+    const resp = await store.dispatch("grades/requestGetStudentProgramLevels", {
+      studentId,
+      programId,
+    });
+    return resp;
+  };
+
+  const requestPostStudentProgramLevel = async ({ studentId, data }) => {
+    const resp = await store.dispatch("grades/requestPostStudentProgramLevel", {
+      studentId,
+      data,
+    });
+    return resp;
+  };
+
   return {
     programs,
     programLevels,
@@ -76,5 +93,8 @@ export default function useGrades() {
     requestGetStudentPrograms,
     isLadingStudentPrograms,
     programsByStudent,
+
+    requestGetStudentProgramLevels,
+    requestPostStudentProgramLevel,
   };
 }
