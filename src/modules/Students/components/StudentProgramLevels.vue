@@ -1,7 +1,11 @@
 <template>
   <div class="px-4">
     <div class="d-flex justify-content-end">
-      <argon-button type="primary" size="sm" @click="onAddProgramLevel">
+      <argon-button
+        type="primary"
+        size="sm"
+        @click="onSelectProgramToAssignLevel"
+      >
         <i class="fas fa-plus"></i>
         Agregar Nivel
       </argon-button>
@@ -46,25 +50,16 @@
         </div>
       </el-card>
     </div>
-
-    <add-edit-student-program-level
-      :show-modal="showModal"
-      :student-id="studentId"
-      :program-id="programId"
-      :row-selected="{}"
-      @hide-modal="onHideModal"
-      @accept-modal="onAcceptModal"
-    />
   </div>
 </template>
 <script>
 import useGrades from "@/composables/useGrades";
 import { onMounted, ref } from "vue";
-import AddEditStudentProgramLevel from "./AddEditStudentProgramLevel.vue";
+// import AddEditStudentProgramLevel from "./AddEditStudentProgramLevel.vue";
 
 export default {
   name: "StudentProgramLevels",
-  components: { AddEditStudentProgramLevel },
+  // components: { AddEditStudentProgramLevel },
   props: {
     studentId: {
       type: String,
@@ -75,8 +70,8 @@ export default {
       required: true,
     },
   },
-
-  setup(props) {
+  emits: ["set-program-selected"],
+  setup(props, { emit }) {
     //instances
     const { requestGetStudentProgramLevels } = useGrades();
 
@@ -115,6 +110,10 @@ export default {
       }
     };
 
+    function onSelectProgramToAssignLevel() {
+      emit("set-program-selected", props.programId);
+    }
+
     onMounted(async () => {
       await getAndSetProgramLevels();
     });
@@ -127,6 +126,8 @@ export default {
       onAddProgramLevel,
       onHideModal,
       onAcceptModal,
+
+      onSelectProgramToAssignLevel,
     };
   },
 };

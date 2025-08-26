@@ -15,6 +15,9 @@
           <student-program-levels
             :student-id="studentId"
             :program-id="row.programs.program_id"
+            @set-program-selected="
+              onSelectProgramToAssignLevel(row.programs.program_id)
+            "
           />
         </template>
       </el-table-column>
@@ -31,18 +34,28 @@
       @accept-modal="onAcceptModal"
     />
   </el-card>
+  <add-edit-student-program-level
+    :show-modal="showModalProgramLevel"
+    :student-id="studentId"
+    :program-id="programIdToAssignLevel"
+    :row-selected="rowSelectedProgramLevel"
+    @hide-modal="onHideModalLevel"
+    @accept-modal="onAcceptModalLevel"
+  />
 </template>
 
 <script>
 import { onMounted, ref } from "vue";
 import { useGrades } from "@/composables";
 import AddEditStudentProgram from "./AddEditStudentProgram.vue";
+import AddEditStudentProgramLevel from "./AddEditStudentProgramLevel.vue";
 import StudentProgramLevels from "./StudentProgramLevels.vue";
 
 export default {
   components: {
     AddEditStudentProgram,
     StudentProgramLevels,
+    AddEditStudentProgramLevel,
   },
   props: {
     studentId: {
@@ -62,6 +75,10 @@ export default {
     const showModal = ref(false);
     const rowSelected = ref({});
 
+    const showModalProgramLevel = ref(false);
+    const rowSelectedProgramLevel = ref({});
+    const programIdToAssignLevel = ref("");
+
     //methods
     const onAddProgram = async () => {
       showModal.value = true;
@@ -72,11 +89,27 @@ export default {
       rowSelected.value = {};
     };
 
+    function onSelectProgramToAssignLevel(programId) {
+      programIdToAssignLevel.value = programId;
+      showModalProgramLevel.value = true;
+    }
+
+    function onHideModalLevel() {
+      showModalProgramLevel.value = false;
+      rowSelectedProgramLevel.value = {};
+      programIdToAssignLevel.value = "";
+    }
+
     const onAcceptModal = async () => {
       showModal.value = false;
       rowSelected.value = {};
       await requestGetStudentPrograms(props.studentId);
     };
+
+    async function onAcceptModalLevel() {
+      await requestGetStudentPrograms(props.studentId);
+      onHideModalLevel();
+    }
 
     //lifecycle
     onMounted(async () => {
@@ -92,6 +125,12 @@ export default {
       isLadingStudentPrograms,
       programsByStudent,
       onAcceptModal,
+      showModalProgramLevel,
+      rowSelectedProgramLevel,
+      programIdToAssignLevel,
+      onHideModalLevel,
+      onAcceptModalLevel,
+      onSelectProgramToAssignLevel,
     };
   },
 };

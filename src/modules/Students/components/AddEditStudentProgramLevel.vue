@@ -1,5 +1,5 @@
 <template>
-  <modal :show="showModal" :on-hide-modal="onHideModal">
+  <modal :show="showModal" :on-hide-modal="onHideModal" class="z-index-1000">
     <template #header>
       {{ `${editMode ? "Editar" : "Agregar"} Nivel` }}
     </template>
@@ -16,7 +16,7 @@
             <el-form-item label="Nivel" prop="program_level_id">
               <el-select
                 v-model="formModel.program_level_id"
-                placeholder="Seleccione un programa"
+                placeholder="Seleccione un Nivel"
                 :disabled="editMode"
               >
                 <el-option
@@ -43,7 +43,7 @@
 </template>
 
 <script>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useGrades } from "@/composables";
 import { Modal } from "@/components";
 import errorMessages from "@/constants/formErrorMessages";
@@ -153,9 +153,21 @@ export default {
       }
     );
 
-    onMounted(async () => {
-      await Promise.all([requestGetProgramLevels(props.programId)]);
-    });
+    // onMounted(async () => {
+    //   await Promise.all([requestGetProgramLevels(props.programId)]);
+    // });
+
+    watch(
+      () => props.programId,
+      (value) => {
+        if (value) {
+          requestGetProgramLevels(value);
+        }
+      },
+      {
+        immediate: true,
+      }
+    );
 
     return {
       formModel,
