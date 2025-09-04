@@ -18,6 +18,14 @@
             @set-program-selected="
               onSelectProgramToAssignLevel(row.programs.program_id)
             "
+            @enroll-courses="
+              (student_grade_id) =>
+                onEnrollCourses(student_grade_id, row.programs.program_id)
+            "
+            @show-enrollment="
+              (enrollmentId) =>
+                onShowEnrollment(enrollmentId, row.programs.program_id)
+            "
           />
         </template>
       </el-table-column>
@@ -42,6 +50,15 @@
     @hide-modal="onHideModalLevel"
     @accept-modal="onAcceptModalLevel"
   />
+  <add-edit-student-program-level-enrollment
+    :show-modal="showModalProgramLevelEnrollment"
+    :student-id="studentId"
+    :program-id="programIdToEnrollment"
+    :student-grade-id="studentGradeIdToEnrollment"
+    :enrollment-id="studentEnrollmentId"
+    @hide-modal="onHideModalLevelEnrollment"
+    @accept-modal="onAcceptModalLevelEnrollment"
+  />
 </template>
 
 <script>
@@ -50,11 +67,13 @@ import { useGrades } from "@/composables";
 import AddEditStudentProgram from "./AddEditStudentProgram.vue";
 import AddEditStudentProgramLevel from "./AddEditStudentProgramLevel.vue";
 import StudentProgramLevels from "./StudentProgramLevels.vue";
+import AddEditStudentProgramLevelEnrollment from "./AddEditStudentProgramLevelEnrollment.vue";
 
 export default {
   components: {
     AddEditStudentProgram,
     StudentProgramLevels,
+    AddEditStudentProgramLevelEnrollment,
     AddEditStudentProgramLevel,
   },
   props: {
@@ -79,6 +98,11 @@ export default {
     const rowSelectedProgramLevel = ref({});
     const programIdToAssignLevel = ref("");
 
+    const studentGradeIdToEnrollment = ref("");
+    const studentEnrollmentId = ref("");
+    const showModalProgramLevelEnrollment = ref(false);
+    const programIdToEnrollment = ref("");
+
     //methods
     const onAddProgram = async () => {
       showModal.value = true;
@@ -88,6 +112,32 @@ export default {
       showModal.value = false;
       rowSelected.value = {};
     };
+
+    function onHideModalLevelEnrollment() {
+      showModalProgramLevelEnrollment.value = false;
+      studentGradeIdToEnrollment.value = "";
+      programIdToAssignLevel.value = "";
+      studentEnrollmentId.value = "";
+    }
+
+    async function onAcceptModalLevelEnrollment() {
+      onHideModalLevelEnrollment();
+
+      await requestGetStudentPrograms(props.studentId);
+    }
+
+    function onEnrollCourses(student_grade_id, programId) {
+      studentGradeIdToEnrollment.value = student_grade_id;
+      programIdToEnrollment.value = programId;
+      showModalProgramLevelEnrollment.value = true;
+    }
+
+    function onShowEnrollment(enrollmentId, programId) {
+      programIdToEnrollment.value = programId;
+
+      studentEnrollmentId.value = enrollmentId;
+      showModalProgramLevelEnrollment.value = true;
+    }
 
     function onSelectProgramToAssignLevel(programId) {
       programIdToAssignLevel.value = programId;
@@ -131,6 +181,17 @@ export default {
       onHideModalLevel,
       onAcceptModalLevel,
       onSelectProgramToAssignLevel,
+
+      showModalProgramLevelEnrollment,
+      studentGradeIdToEnrollment,
+
+      onHideModalLevelEnrollment,
+      onAcceptModalLevelEnrollment,
+      programIdToEnrollment,
+      onEnrollCourses,
+
+      onShowEnrollment,
+      studentEnrollmentId,
     };
   },
 };

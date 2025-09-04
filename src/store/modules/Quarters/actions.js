@@ -19,7 +19,7 @@ export const requestGetTerms = async ({ commit }, params) => {
 export const requestGetTermsList = async ({ commit }, params) => {
   return new Promise((resolve, reject) => {
     sbgApi
-      .get(`/quartes/list`, { params })
+      .get(`/terms/list`, { params })
       .then((response) => {
         commit("setQuartersList", response.data);
         resolve(response.data);

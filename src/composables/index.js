@@ -8,6 +8,7 @@ import useReports from "./useReports";
 import useAuth from "./useAuth";
 import useDashboard from "./useDashboard";
 import useGrades from "./useGrades";
+import useCourses from "./useCourses";
 
 export {
   useCollections,
@@ -20,4 +21,5 @@ export {
   useAuth,
   useDashboard,
   useGrades,
+  useCourses,
 };

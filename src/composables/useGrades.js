@@ -82,6 +82,51 @@ export default function useGrades() {
     return resp;
   };
 
+  //Enrollment Details
+  const requestStudentGradeEnrollments = async (studentGradeId) => {
+    const resp = await store.dispatch(
+      "grades/requestStudentGradeEnrollments",
+      studentGradeId
+    );
+    return resp;
+  };
+
+  const requestGetEnrollmentDetails = async (enrollmentId) => {
+    const resp = await store.dispatch(
+      "grades/requestGetEnrollmentDetails",
+      enrollmentId
+    );
+    return resp;
+  };
+
+  const requestPostStudentGradeEnrollmentPreview = async (data) => {
+    const resp = await store.dispatch(
+      "grades/requestPostStudentGradeEnrollmentPreview",
+      data
+    );
+    return resp;
+  };
+
+  async function requestPostStudentGradeEnrollment({
+    studentId,
+    studentGradeId,
+    data,
+  }) {
+    const resp = await store.dispatch(
+      "grades/requestPostStudentGradeEnrollment",
+      { studentId, studentGradeId, data }
+    );
+    return resp;
+  }
+
+  async function requestPutStudentGradeEnrollment({ enrollmentId, data }) {
+    const resp = await store.dispatch(
+      "grades/requestPutStudentGradeEnrollment",
+      { enrollmentId, data }
+    );
+    return resp;
+  }
+
   return {
     programs,
     programLevels,
@@ -96,5 +141,11 @@ export default function useGrades() {
 
     requestGetStudentProgramLevels,
     requestPostStudentProgramLevel,
+
+    requestStudentGradeEnrollments,
+    requestGetEnrollmentDetails,
+    requestPostStudentGradeEnrollmentPreview,
+    requestPostStudentGradeEnrollment,
+    requestPutStudentGradeEnrollment,
   };
 }

@@ -1,6 +1,6 @@
 <template>
   <div class="px-4">
-    <div class="d-flex justify-content-end">
+    <div class="d-flex justify-content-end mb-3">
       <argon-button
         type="primary"
         size="sm"
@@ -27,26 +27,46 @@
       v-else
       :key="programLevel.student_grade_id"
     >
-      <el-card
-        class="mb-4 d-flex justify-content-between align-items-center"
-        shadow="none"
-      >
-        <div class="text-lg font-bold mb-2">
-          {{ programLevel.program_levels.name }}
-        </div>
-        <div class="text-sm text-gray-600">
-          {{ programLevel.student_grade_statuses.name }}
-        </div>
-        <div class="d-flex gap-2">
-          <span class="text-sm text-gray-500 mr-2">
-            <b>Fecha de Inicio:</b>
-            {{ programLevel.start_date_formatted }}
-          </span>
-          |
-          <span class="text-sm text-gray-500">
-            <b> Fecha de Fin: </b>
-            {{ programLevel.end_date_formatted || "No definida" }}
-          </span>
+      <el-card class="mb-4" shadow="none">
+        <div class="row">
+          <div class="col-6">
+            <div class="text-lg font-bold mb-2">
+              {{ programLevel.program_levels.name }}
+            </div>
+
+            <div class="text-sm text-gray-600">
+              {{ programLevel.student_grade_statuses.name }}
+            </div>
+            <div class="d-flex gap-2">
+              <span class="text-sm text-gray-500 mr-2">
+                <b>Fecha de Inicio:</b>
+                {{ programLevel.start_date_formatted }}
+              </span>
+              |
+              <span class="text-sm text-gray-500">
+                <b> Fecha de Fin: </b>
+                {{ programLevel.end_date_formatted || "No definida" }}
+              </span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="d-flex justify-content-end">
+              <argon-button
+                size="sm"
+                variant="outline"
+                color="info"
+                @click="onEnrollCourses(programLevel.student_grade_id)"
+              >
+                Matricular Cursos
+              </argon-button>
+            </div>
+            <div class="col-12 mt-2">
+              <StudentGradeEnrollments
+                :student-grade-id="programLevel.student_grade_id"
+                @edit-enrollment="onShowEnrollment"
+              />
+            </div>
+          </div>
         </div>
       </el-card>
     </div>
@@ -55,11 +75,12 @@
 <script>
 import useGrades from "@/composables/useGrades";
 import { onMounted, ref } from "vue";
+import StudentGradeEnrollments from "./StudentGradeEnrollments.vue";
 // import AddEditStudentProgramLevel from "./AddEditStudentProgramLevel.vue";
 
 export default {
   name: "StudentProgramLevels",
-  // components: { AddEditStudentProgramLevel },
+  components: { StudentGradeEnrollments },
   props: {
     studentId: {
       type: String,
@@ -70,7 +91,7 @@ export default {
       required: true,
     },
   },
-  emits: ["set-program-selected"],
+  emits: ["set-program-selected", "enroll-courses", "show-enrollment"],
   setup(props, { emit }) {
     //instances
     const { requestGetStudentProgramLevels } = useGrades();
@@ -114,6 +135,14 @@ export default {
       emit("set-program-selected", props.programId);
     }
 
+    function onEnrollCourses(student_grade_id) {
+      emit("enroll-courses", student_grade_id);
+    }
+
+    function onShowEnrollment(enrollmentId) {
+      emit("show-enrollment", enrollmentId);
+    }
+
     onMounted(async () => {
       await getAndSetProgramLevels();
     });
@@ -128,6 +157,9 @@ export default {
       onAcceptModal,
 
       onSelectProgramToAssignLevel,
+      onEnrollCourses,
+
+      onShowEnrollment,
     };
   },
 };

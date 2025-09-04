@@ -97,3 +97,77 @@ export const requestPostStudentProgramLevel = async (
       });
   });
 };
+
+export const requestStudentGradeEnrollments = async (_, studentGradeId) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .get(`/grades/${studentGradeId}/enrollments`)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+export const requestGetEnrollmentDetails = async (_, enrollmentId) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .get(`/grades/enrollment/${enrollmentId}`)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+export const requestPostStudentGradeEnrollmentPreview = async (_, data) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .post(`/grades/enrollment/preview`, data)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+export const requestPostStudentGradeEnrollment = async (
+  _,
+  { studentId, studentGradeId, data }
+) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .post(
+        `/grades/level/${studentGradeId}/student/${studentId}/enrollment`,
+        data
+      )
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
+export const requestPutStudentGradeEnrollment = async (
+  _,
+  { enrollmentId, data }
+) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .put(`/grades/enrollment/${enrollmentId}`, data)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};

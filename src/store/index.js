@@ -9,6 +9,7 @@ import quarters from "./modules/Quarters";
 import reports from "./modules/Reports";
 import dashboard from "./modules/Dashboard";
 import grades from "./modules/Grades";
+import courses from "./modules/Courses";
 
 const store = createStore({
   state: {
@@ -101,6 +102,7 @@ const store = createStore({
     reports,
     dashboard,
     grades,
+    courses,
   },
   plugins: [createPersistedState()],
 });
