@@ -127,6 +127,14 @@ export default function useGrades() {
     return resp;
   }
 
+  async function requestPostEnrollmentEvidence({ enrollmentId, formData }) {
+    const resp = await store.dispatch("grades/requestPostEnrollmentEvidence", {
+      enrollmentId,
+      data: formData,
+    });
+    return resp;
+  }
+
   return {
     programs,
     programLevels,
@@ -147,5 +155,7 @@ export default function useGrades() {
     requestPostStudentGradeEnrollmentPreview,
     requestPostStudentGradeEnrollment,
     requestPutStudentGradeEnrollment,
+
+    requestPostEnrollmentEvidence,
   };
 }

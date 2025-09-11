@@ -41,6 +41,29 @@
               </el-form-item>
             </div>
             <div class="col-md-6">
+              <el-form-item label="Creditos" prop="credits">
+                <el-input
+                  v-model="formModel.credits"
+                  type="number"
+                  placeholder="Ingrese la cantidad de créditos"
+                />
+              </el-form-item>
+            </div>
+            <div class="col-md-6">
+              <el-form-item
+                label="Monto de Cobro"
+                prop="enrollment_charge_total"
+              >
+                <el-input
+                  v-model="formModel.enrollment_charge_total"
+                  type="number"
+                  placeholder="Ingrese el monto de cobro"
+                >
+                  <template #prepend>Q</template>
+                </el-input>
+              </el-form-item>
+            </div>
+            <div class="col-md-6">
               <el-form-item
                 label="Incluir Inscripción"
                 prop="include_registration"
@@ -55,60 +78,39 @@
           </div>
 
           <div class="col-12">
-            <el-form-item label="Cursos" class="row">
-              <!-- Filter input for courses -->
-
-              <div class="col-12">
-                <el-input
-                  v-model="courseFilter"
-                  placeholder="Buscar curso por nombre"
-                  clearable
+            <el-form-item label="Documento" prop="courses">
+              <div v-if="enrollment_evidence">
+                <img
+                  :src="enrollment_evidence"
+                  alt="Evidencia de matrícula"
+                  style="max-width: 400px; display: block; margin: 10px auto"
                 />
+                <argon-button
+                  variant="outline"
+                  @click="enrollment_evidence = null"
+                >
+                  Reemplazar evidencia
+                </argon-button>
               </div>
-
-              <div
-                v-for="course in filteredCourses"
-                :key="course.course_id"
-                class="col-12 row mt-4"
-              >
-                <div class="col-8">
-                  <div class="row">
-                    <div class="col-8">
-                      <el-checkbox
-                        :id="course.course_id"
-                        v-model="course.selected"
-                        :label="course.name"
-                      ></el-checkbox>
-                    </div>
-                    <div class="col-4">
-                      <span v-if="course.credits"
-                        >Créditos: {{ course.credits }}</span
-                      >
-                      <span v-if="course.price"
-                        >Precio: {{ course.price }}</span
-                      >
-                    </div>
-                  </div>
+              <div v-else>
+                <input
+                  id="document-upload"
+                  type="file"
+                  class="form-control"
+                  accept="image/png, image/jpeg, image/jpg"
+                  @change="onFileChange"
+                />
+                <div class="form-text">
+                  Solo se aceptan archivos JPG/PNG/JPEG.
                 </div>
-                <div class="col-4">
-                  <el-select
-                    v-model="course.enrollment_course_type_id"
-                    placeholder="Tipo de matrícula"
-                    :disabled="!course.selected"
-                  >
-                    <el-option
-                      label="Regular"
-                      value="34780a80-a639-4e36-adfd-5ff978ff63fc"
-                    />
-                    <el-option
-                      label="Oyente"
-                      value="ae85dcf3-4dd7-4798-b98b-68d71b68c7cf"
-                    />
-                  </el-select>
+                <div v-if="selectedFile" class="mt-2">
+                  <strong>Archivo seleccionado:</strong>
+                  {{ selectedFile?.name }}
                 </div>
               </div>
             </el-form-item>
           </div>
+
           <div class="col-12">
             <el-form-item label="Descripción" prop="description">
               <el-input
@@ -138,12 +140,7 @@
     >
       <div>
         <p>
-          <strong>Total a cobrar por matrícula:</strong>
-          {{ enrollmentPreviewResponse.totalEnrollmentCharge }}
-        </p>
-        <p>
-          <strong>Detalle:</strong>
-          {{ enrollmentPreviewResponse.enrollmentChargeDescription }}
+          <strong>¿Estás seguro de crear la matrícula?</strong>
         </p>
       </div>
 
@@ -169,7 +166,7 @@
 
 <script>
 import { computed, onMounted, ref, watch } from "vue";
-import { useQuarters, useCourses, useGrades } from "@/composables";
+import { useQuarters, useGrades } from "@/composables";
 import { Modal } from "@/components";
 import errorMessages from "@/constants/formErrorMessages";
 
@@ -214,31 +211,28 @@ export default {
 
     const { quartersList, requestGetTermsList } = useQuarters();
 
-    const { requestGetCoursesByProgram } = useCourses();
     const {
-      requestPostStudentGradeEnrollmentPreview,
       requestPostStudentGradeEnrollment,
       requestGetEnrollmentDetails,
       requestPutStudentGradeEnrollment,
+      requestPostEnrollmentEvidence,
     } = useGrades();
 
     //refs
-    const coursesByProgramId = ref([]);
-
     const lockModal = ref(false);
     const lockModalConfirm = ref(false);
     const formRef = ref(null);
     const formModel = ref({
       term_id: "",
+      enrollment_charge_total: "",
+      credits: "",
       include_registration: false,
       enrollment_date: "",
       description: "",
     });
+    const selectedFile = ref(null);
+    const enrollment_evidence = ref(null);
     const showConfirmEnrollment = ref(false);
-    const enrollmentPreviewResponse = ref({
-      totalEnrollmentCharge: 0,
-      enrollmentChargeDescription: "",
-    });
 
     const rules = ref({
       term_id: [{ required: true, message: requiredMessage }],
@@ -249,16 +243,7 @@ export default {
       return props.enrollmentId !== "";
     });
 
-    const courseFilter = ref("");
-
-    const filteredCourses = computed(() => {
-      return coursesByProgramId.value.filter((course) =>
-        course.name.toLowerCase().includes(courseFilter.value.toLowerCase())
-      );
-    });
-
     //methods
-
     const onHideModal = () => {
       onClearData();
       emit("hide-modal");
@@ -266,17 +251,7 @@ export default {
 
     function onClearData() {
       formRef.value.resetFields();
-
-      enrollmentPreviewResponse.value = {
-        totalEnrollmentCharge: 0,
-        enrollmentChargeDescription: "",
-      };
-
-      coursesByProgramId.value = coursesByProgramId.value.map((course) => ({
-        ...course,
-        selected: false,
-        enrollment_course_type_id: "",
-      }));
+      selectedFile.value = null;
 
       lockModal.value = false;
       lockModalConfirm.value = false;
@@ -294,29 +269,7 @@ export default {
 
       lockModal.value = true;
 
-      const data = {
-        term_id: formModel.value.term_id,
-        include_registration: formModel.value.include_registration,
-        enrollment_date: formModel.value.enrollment_date,
-        description: formModel.value.description,
-        courses: coursesByProgramId.value
-          .filter((course) => course.selected)
-          .map((course) => ({
-            course_id: course.course_id,
-            enrollment_course_type_id: course.enrollment_course_type_id,
-          })),
-      };
-
       try {
-        const enrollmentPreview =
-          await requestPostStudentGradeEnrollmentPreview(data);
-
-        enrollmentPreviewResponse.value = {
-          totalEnrollmentCharge: enrollmentPreview.totalEnrollmentCharge,
-          enrollmentChargeDescription:
-            enrollmentPreview.enrollmentChargeDescription,
-        };
-
         showConfirmEnrollment.value = true;
       } catch (error) {
         ElMessage.error(getErrorMessage(error));
@@ -325,20 +278,23 @@ export default {
       }
     }
 
+    function onFileChange(event) {
+      const file = event.target.files[0];
+      if (file) {
+        selectedFile.value = file;
+      }
+    }
+
     async function onConfirmEnrollment() {
       try {
         lockModalConfirm.value = true;
         const data = {
           term_id: formModel.value.term_id,
+          credits: +formModel.value.credits,
+          enrollment_charge_total: +formModel.value.enrollment_charge_total,
           include_registration: formModel.value.include_registration,
           enrollment_date: formModel.value.enrollment_date,
           description: formModel.value.description,
-          courses: coursesByProgramId.value
-            .filter((course) => course.selected)
-            .map((course) => ({
-              course_id: course.course_id,
-              enrollment_course_type_id: course.enrollment_course_type_id,
-            })),
         };
 
         if (editMode.value) {
@@ -346,20 +302,63 @@ export default {
             enrollmentId: props.enrollmentId,
             data,
           });
-          ElMessage.success("Inscripción editada");
-          emit("accept-modal");
-          onClearData();
+          if (selectedFile.value) {
+            const formData = new FormData();
+            formData.append("file", selectedFile.value);
+
+            try {
+              const enrollmentIdToAddEvidence = props.enrollmentId;
+
+              await requestPostEnrollmentEvidence({
+                enrollmentId: enrollmentIdToAddEvidence,
+                formData,
+              });
+
+              ElMessage.success("Matricula editada correctamente");
+              emit("accept-modal");
+              onClearData();
+            } catch {
+              ElMessage.error(
+                "Error al subir el archivo. Puedes intentarlo una vez mas"
+              );
+              emit("accept-modal");
+              onClearData();
+            }
+          }
           return;
         }
 
-        await requestPostStudentGradeEnrollment({
+        const enrollmentCreated = await requestPostStudentGradeEnrollment({
           studentId: props.studentId,
           studentGradeId: props.studentGradeId,
           data,
         });
-        ElMessage.success("Inscripción confirmada");
-        emit("accept-modal");
-        onClearData();
+
+        //if selected file is not null we can upload a documento for this enrollment
+        if (selectedFile.value) {
+          const formData = new FormData();
+          formData.append("file", selectedFile.value);
+
+          try {
+            const enrollmentIdToAddEvidence =
+              enrollmentCreated?.enrollment?.enrollment_id ||
+              props.enrollmentId;
+
+            await requestPostEnrollmentEvidence({
+              enrollmentId: enrollmentIdToAddEvidence,
+              formData,
+            });
+
+            emit("accept-modal");
+            onClearData();
+          } catch {
+            ElMessage.error(
+              "Error al subir el archivo. Puedes intentarlo una vez mas"
+            );
+            emit("accept-modal");
+            onClearData();
+          }
+        }
       } catch (error) {
         ElMessage.error(getErrorMessage(error));
       } finally {
@@ -367,23 +366,6 @@ export default {
         showConfirmEnrollment.value = false;
       }
     }
-
-    watch(
-      () => props.programId,
-      async (value) => {
-        if (value) {
-          const response = await requestGetCoursesByProgram(value);
-          coursesByProgramId.value = response.map((course) => ({
-            ...course,
-            selected: false,
-            enrollment_course_type_id: course?.enrollment_course_type_id || "",
-          }));
-        }
-      },
-      {
-        immediate: true,
-      }
-    );
 
     watch(
       () => props.enrollmentId,
@@ -395,19 +377,14 @@ export default {
 
           formModel.value.term_id = response.term.term_id;
           formModel.value.enrollment_date = response.enrollment_date;
-
+          formModel.value.credits = response.credits;
+          formModel.value.enrollment_charge_total =
+            response.enrollment_charge_total;
           formModel.value.description = response.description;
+          formModel.value.include_registration = response.include_registration;
 
-          coursesByProgramId.value.forEach((course) => {
-            const enrollmentCourse = response.enrollment_courses.find(
-              (enrollment) => enrollment.course_id === course.course_id
-            );
-            if (enrollmentCourse) {
-              course.selected = true;
-              course.enrollment_course_type_id =
-                enrollmentCourse.enrollment_course_type_id;
-            }
-          });
+          enrollment_evidence.value = response.enrollment_evidence;
+
           lockModal.value = false;
         }
       },
@@ -430,14 +407,14 @@ export default {
       props,
       quartersList,
 
-      coursesByProgramId,
       editMode,
-      courseFilter,
-      filteredCourses,
-      enrollmentPreviewResponse,
+
       showConfirmEnrollment,
       onConfirmEnrollment,
+
       lockModalConfirm,
+      onFileChange,
+      enrollment_evidence,
     };
   },
 };

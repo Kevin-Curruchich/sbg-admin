@@ -171,3 +171,23 @@ export const requestPutStudentGradeEnrollment = async (
       });
   });
 };
+
+export const requestPostEnrollmentEvidence = async (
+  _,
+  { enrollmentId, data }
+) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .post(`/grades/enrollment/${enrollmentId}/evidence`, data, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
