@@ -18,16 +18,33 @@
               </td>
               <td v-if="studentBalance?.studentHasCredit" class="text-center">
                 <b>{{ studentBalance?.studentCreditFormatted }}</b>
-                <el-button
-                  v-if="studentBalance?.studentHasCredit"
-                  class="ms-2"
-                  circle
-                  size="small"
-                  icon
-                  @click="onConfirmCleanPositiveCredit"
-                >
-                  <i class="fas fa-broom" />
-                </el-button>
+                <el-dropdown trigger="click">
+                  <span class="el-dropdown-link">
+                    <el-button
+                      v-if="studentBalance?.studentHasCredit"
+                      class="ms-2"
+                      circle
+                      size="small"
+                      icon
+                    >
+                      <i class="fas fa-ellipsis-v" />
+                    </el-button>
+                  </span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item
+                        @click="confirmCleanPositiveCredit = true"
+                      >
+                        Aplicar Saldo a cobros Pendientes
+                      </el-dropdown-item>
+                      <el-dropdown-item
+                        @click="confirmRefundPositiveCredit = true"
+                      >
+                        Devolver Saldo
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
               </td>
             </tr>
           </tbody>
@@ -163,6 +180,50 @@
     </div>
 
     <el-dialog
+      v-model="confirmRefundPositiveCredit"
+      title="Devolución de Saldo a favor"
+    >
+      <p>El Estudiante cuenta con saldo a favor. Indique el monto a devolver</p>
+      <p>
+        Saldo a favor actual:
+        <b>
+          {{ studentBalance?.studentCreditFormatted }}
+        </b>
+      </p>
+
+      <el-input
+        v-model="refundAmount"
+        type="number"
+        min="0"
+        :max="studentBalance?.studentCredit"
+        placeholder="Monto a devolver"
+      />
+
+      <br />
+
+      <el-input
+        v-model="refundReason"
+        class="mt-2"
+        type="textarea"
+        placeholder="Motivo de la devolución (opcional)"
+        :rows="3"
+      />
+
+      <template #footer>
+        <el-button @click="confirmRefundPositiveCredit = false">
+          Cancelar
+        </el-button>
+        <el-button
+          type="primary"
+          :loading="isLoadingRefundStudentPositiveCredit"
+          @click="onRefundPositiveCredit"
+        >
+          Continuar
+        </el-button>
+      </template>
+    </el-dialog>
+
+    <el-dialog
       v-model="confirmCleanPositiveCredit"
       title="Limpiar Saldo a favor"
     >
@@ -175,9 +236,9 @@
       ¿Desea continuar?
 
       <template #footer>
-        <el-button @click="confirmCleanPositiveCredit = false"
-          >Cancelar</el-button
-        >
+        <el-button @click="confirmCleanPositiveCredit = false">
+          Cancelar
+        </el-button>
         <el-button
           type="primary"
           :loading="isLoadingSpreadStudentPositiveCredit"
@@ -201,14 +262,18 @@ import {
   useStudent,
   useAuth,
 } from "@/composables";
+import { ElMessage } from "element-plus";
 
 export default {
   setup() {
     const route = useRoute();
 
     const { id } = route.params;
-    const { onNavigateToPayment, requestSpreadStudentPositiveCredit } =
-      usePayments();
+    const {
+      onNavigateToPayment,
+      requestSpreadStudentPositiveCredit,
+      requestRefundStudentPositiveCredit,
+    } = usePayments();
     const { userIsAdmin } = useAuth();
 
     const {
@@ -240,7 +305,11 @@ export default {
     const charge_status_id = ref(routeQueryParams.value.charge_status_id || "");
     const due_date = ref("");
     const confirmCleanPositiveCredit = ref(false);
+    const confirmRefundPositiveCredit = ref(false);
     const isLoadingSpreadStudentPositiveCredit = ref(false);
+    const refundAmount = ref(0);
+    const refundReason = ref("");
+    const isLoadingRefundStudentPositiveCredit = ref(false);
 
     const params = computed(() => {
       return {
@@ -283,7 +352,6 @@ export default {
       isLoadingSpreadStudentPositiveCredit.value = true;
       try {
         const response = await requestSpreadStudentPositiveCredit(id);
-        console.log({ response });
 
         onNavigateToPayment(response.paymentCreated.payment_id);
 
@@ -294,6 +362,43 @@ export default {
         isLoadingSpreadStudentPositiveCredit.value = false;
       }
     };
+
+    async function onRefundPositiveCredit() {
+      if (
+        refundAmount.value <= 0 ||
+        refundAmount.value > studentBalance.value.studentCredit
+      ) {
+        ElMessage.error(
+          "El monto a devolver debe ser mayor a 0 y no puede exceder el saldo a favor"
+        );
+        return;
+      }
+
+      isLoadingRefundStudentPositiveCredit.value = true;
+
+      try {
+        await requestRefundStudentPositiveCredit({
+          student_id: id,
+          amount: +refundAmount.value,
+          reason: refundReason.value,
+        });
+
+        ElMessage.success("La devolución se ha procesado correctamente");
+        refundAmount.value = 0;
+
+        requestGetStudentBalance(id);
+        requestGetCollectionsByStudent(id, params.value);
+      } catch (error) {
+        ElMessage.error(
+          error.response?.data?.message ||
+            "Ha ocurrido un error al procesar la devolución"
+        );
+      } finally {
+        isLoadingRefundStudentPositiveCredit.value = false;
+      }
+
+      confirmRefundPositiveCredit.value = false;
+    }
 
     //lifecycle
     onMounted(() => {
@@ -321,6 +426,11 @@ export default {
       confirmCleanPositiveCredit,
       isLoadingSpreadStudentPositiveCredit,
       onSpreadStudentPositiveCredit,
+      onRefundPositiveCredit,
+      confirmRefundPositiveCredit,
+      refundAmount,
+      refundReason,
+      isLoadingRefundStudentPositiveCredit,
     };
   },
 };

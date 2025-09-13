@@ -68,6 +68,19 @@ export const requestSpreadStudentPositiveCredit = async (_, studentId) => {
   });
 };
 
+export const requestRefundStudentPositiveCredit = async (_, data) => {
+  return new Promise((resolve, reject) => {
+    sbgApi
+      .post("/payments/devolution", data)
+      .then((response) => {
+        resolve(response.data);
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+};
+
 export const requestPostGlobalStudentsPayment = (_, data) => {
   return new Promise((resolve, reject) => {
     sbgApi
